@@ -1,6 +1,6 @@
 ## Налаштування:
 1) перейти на Go modules:
-go mod init termadventure
+- go mod init termadventure
 2) виправити локальні імпорти (./...):
 - import "./levels" -> import "termadventure/levels"
 3) автоматично підтягнути залежності:
