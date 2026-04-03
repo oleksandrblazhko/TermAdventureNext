@@ -1,7 +1,7 @@
 package main
 
 import (
-	"termadventure/levels"
+	"./levels"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -40,6 +40,12 @@ func main() {
 		"check whether current level is to be passed (sets correct exit code)")
 	background_jobs_flag := flag.Bool("background-jobs", false,
 		"returns correct exit code based on whether the current level uses background jobs")
+	get_level_timelimit_flag := flag.Bool("get-level-timelimit", false,
+		"print the time limit (in seconds) for the current level and exit")
+	check_level_time_flag := flag.Bool("check-level-time", false,
+		"check whether time for the current level has expired (sets correct exit code)")
+	print_level_timer_flag := flag.Bool("print-level-timer", false,
+		"print remaining time for the current level in seconds and exit")
 
 	flag.Parse()
 
@@ -172,8 +178,27 @@ func main() {
 		}
 	}
 
+	if *get_level_timelimit_flag {
+		fmt.Printf("%d", challenge.GetLevelTimeLimit())
+		os.Exit(0)
+	}
+
+	if *check_level_time_flag {
+		if challenge.CheckLevelTimeExpired() {
+			os.Exit(0)
+		} else {
+			os.Exit(1)
+		}
+	}
+
+	if *print_level_timer_flag {
+		fmt.Printf("%d", challenge.GetLevelTimeRemaining())
+		os.Exit(0)
+	}
+
 	if challenge.CheckCurrentLevel() {
 		challenge.GoToNextLevel()
+		challenge.SaveLevelStartTime()
 	}
 
 	// Print the current level definition either if we have just switched levels,
@@ -181,6 +206,7 @@ func main() {
 	print_again_exists, _ := levels.CmdOK("test -e $HOME/.ta_print_again")
 	if *challenge.LastLevelPrinted != "yes" || print_again_exists {
 		challenge.PrintCurrentLevel(*pretty_print_flag, *print_sleep_time)
+		challenge.SaveLevelStartTime()
 
 		// Make sure that the level definition won't be printed again,
 		// unless the user has done any action that suggests it should.
