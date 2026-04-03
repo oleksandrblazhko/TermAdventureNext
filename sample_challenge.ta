@@ -1,10 +1,11 @@
 name: l00
 test: test $(pwd) = "/tmp"
+timelimit: 300
 next: [l01-1, l01-2]
 
 # First alternative bash excercise
 
-Привіт!
+Hi there.
 
 I understand that a command line talking to you might not make sense right now
 but bear with me, things *will* get more interesting.
@@ -14,7 +15,7 @@ can be done using the "cd" command which is a very short abbreviation for
 **'change directory'**.  For instance if I wanted to go to the /usr directory
 I would type
 
-	$ cd /usr
+	$ cd /usrghf
 
 Got it?
 
