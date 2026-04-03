@@ -6,10 +6,10 @@ shopt -s cmdhist
 function prompt_command() {
     history -a
     $TA_BIN $CHALLENGE_FILE
-    export PS1='$($TA_BIN --print-identifier $CHALLENGE_FILE)[\u@\H:\w]$ '
+    export PS1='\t $($TA_BIN --print-identifier $CHALLENGE_FILE)[\u@\H:\w]$ '
 }
 export PROMPT_COMMAND=prompt_command
-export PS1="[\u@\H:\w]$ "
+export PS1="\t [\u@\H:\w]$ "
 force_color_prompt=yes
 
 # history
