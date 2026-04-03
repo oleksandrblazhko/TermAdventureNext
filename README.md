@@ -16,6 +16,7 @@
 
 ## Приклад запуску завдання:
 export CHALLENGE_FILE=./challenge_name.ta
+
 ./challenger.sh
 
 ## Подробиці
