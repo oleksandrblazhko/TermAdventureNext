@@ -3,10 +3,39 @@
 # save multi-line commands as one command
 shopt -s cmdhist
 
+# Лічильник промптів для періодичного показу таймеру
+_ta_prompt_counter=0
+
 function prompt_command() {
     history -a
     $TA_BIN $CHALLENGE_FILE
-    export PS1='\t $($TA_BIN --print-identifier $CHALLENGE_FILE)[\u@\H:\w]$ '
+
+    # Отримуємо ліміт часу поточного рівня
+    local TIME_LIMIT=$($TA_BIN --get-level-timelimit $CHALLENGE_FILE 2>/dev/null)
+
+    # Перевіряємо чи час вичерпано
+    if [ -n "$TIME_LIMIT" ] && [ "$TIME_LIMIT" != "0" ] && [ "$TIME_LIMIT" != "-1" ]; then
+        if $TA_BIN --check-level-time $CHALLENGE_FILE 2>/dev/null; then
+            echo ""
+            echo "⏰ Час на цей рівень вичерпано!"
+            echo ""
+            # Можна додати авто-перехід або вихід — залежно від бажання
+            # exit 0  # розкоментувати для авто-виходу
+        fi
+
+        # Отримуємо залишок часу
+        local REMAINING=$($TA_BIN --print-level-timer $CHALLENGE_FILE 2>/dev/null)
+        if [ -n "$REMAINING" ] && [ "$REMAINING" != "-1" ] && [ "$REMAINING" -gt 0 ] 2>/dev/null; then
+            local mins=$((REMAINING / 60))
+            local secs=$((REMAINING % 60))
+            local TIME_STR=$(printf "%dm %02ds" $mins $secs)
+        else
+            local TIME_STR="0m 00s"
+        fi
+        export PS1="\\t [$TIME_STR] $($TA_BIN --print-identifier $CHALLENGE_FILE)[\u@\H:\w]\$ "
+    else
+        export PS1='\t $($TA_BIN --print-identifier $CHALLENGE_FILE)[\u@\H:\w]$ '
+    fi
 }
 export PROMPT_COMMAND=prompt_command
 export PS1="\t [\u@\H:\w]$ "
