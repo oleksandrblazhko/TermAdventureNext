@@ -32,13 +32,13 @@ function prompt_command() {
         else
             local TIME_STR="0m 00s"
         fi
-        export PS1="\\t [$TIME_STR] $($TA_BIN --print-identifier $CHALLENGE_FILE)[\u@\H:\w]\$ "
+        export PS1=" [$TIME_STR] $($TA_BIN --print-identifier $CHALLENGE_FILE)[\u:\w]\$ "
     else
-        export PS1='\t $($TA_BIN --print-identifier $CHALLENGE_FILE)[\u@\H:\w]$ '
+        export PS1='$($TA_BIN --print-identifier $CHALLENGE_FILE)[\u:\w]$ '
     fi
 }
 export PROMPT_COMMAND=prompt_command
-export PS1="\t [\u@\H:\w]$ "
+export PS1=" [\u:\w]$ "
 force_color_prompt=yes
 
 # history
