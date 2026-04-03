@@ -1,5 +1,3 @@
-# term-adventure
-
 ## Налаштування:
 1) перейти на Go modules:
 go mod init termadventure
@@ -16,11 +14,11 @@ go build -ldflags "-X main.encryption_key=example_key_1234"
 - ta_bashrc - налаштування середовища (промпт, історія)
 - challenge_name.ta або .ta.enc - файл завдання (зашифрований або ні)
 
-# запуск завдання
+## запуск завдання
 export CHALLENGE_FILE=./challenge_name.ta
 ./challenger.sh
 
-
+## подробиці
 A go library for creating good old text adventures in and for the *nix terminals
 
 In order to run the example runner (`sample_challenge.sh`) you need to clone
