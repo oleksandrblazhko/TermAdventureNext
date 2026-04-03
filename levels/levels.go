@@ -39,6 +39,7 @@ type Level struct {
 	TestCmd           string   `yaml:"test"`
 	NextLevels        []string `yaml:"next"`
 	BackgroundJobs    bool     `yaml:"bgjobs"`
+	TimeLimit         int      `yaml:"timelimit"`
 }
 
 func (level *Level) Print(pretty_print_flag bool, print_sleep_time int) {
@@ -258,4 +259,92 @@ func (l *Level) PrintStructured() {
 		log.Fatal(err)
 	}
 	fmt.Printf("\n%s\n", string(d))
+}
+
+// GetLevelTimeLimit повертає ліміт часу (у секундах) для поточного рівня.
+// 0 означає що ліміт не встановлено.
+func (c *Challenge) GetLevelTimeLimit() int {
+	_, index := c.IDToLevel(*c.CurrentLevel)
+	return c.Levels[index].TimeLimit
+}
+
+// SaveLevelStartTime записує поточний час (unix timestamp) у файл $HOME/.ta_level_start_time
+func (c *Challenge) SaveLevelStartTime() {
+	homedir := os.Getenv("HOME")
+	if homedir == "" {
+		usr, err := user.Current()
+		if err == nil {
+			homedir = usr.HomeDir
+		}
+	}
+	if homedir == "" {
+		return
+	}
+	filePath := homedir + "/.ta_level_start_time"
+	os.WriteFile(filePath, []byte(fmt.Sprintf("%d", time.Now().Unix())), 0644)
+}
+
+// CheckLevelTimeExpired повертає true якщо час на поточний рівень вичерпано
+func (c *Challenge) CheckLevelTimeExpired() bool {
+	timeLimit := c.GetLevelTimeLimit()
+	if timeLimit <= 0 {
+		return false // Ліміт не встановлено
+	}
+
+	homedir := os.Getenv("HOME")
+	if homedir == "" {
+		usr, err := user.Current()
+		if err == nil {
+			homedir = usr.HomeDir
+		}
+	}
+	if homedir == "" {
+		return false
+	}
+
+	filePath := homedir + "/.ta_level_start_time"
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		// Файл не знайдено — час старту не збережено
+		return false
+	}
+
+	var startTime int64
+	fmt.Sscanf(string(data), "%d", &startTime)
+	elapsed := time.Now().Unix() - startTime
+	return elapsed >= int64(timeLimit)
+}
+
+// GetLevelTimeRemaining повертає залишок часу у секундах (0 якщо вичерпано)
+func (c *Challenge) GetLevelTimeRemaining() int {
+	timeLimit := c.GetLevelTimeLimit()
+	if timeLimit <= 0 {
+		return -1 // Ліміт не встановлено
+	}
+
+	homedir := os.Getenv("HOME")
+	if homedir == "" {
+		usr, err := user.Current()
+		if err == nil {
+			homedir = usr.HomeDir
+		}
+	}
+	if homedir == "" {
+		return 0
+	}
+
+	filePath := homedir + "/.ta_level_start_time"
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return 0
+	}
+
+	var startTime int64
+	fmt.Sscanf(string(data), "%d", &startTime)
+	elapsed := time.Now().Unix() - startTime
+	remaining := int64(timeLimit) - elapsed
+	if remaining < 0 {
+		return 0
+	}
+	return int(remaining)
 }
