@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./levels"
+	"termadventure/levels"
 )
 
 // Test that tries to simulate condition with "last line counter overflow"

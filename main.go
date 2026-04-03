@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./levels"
+	"termadventure/levels"
 	"flag"
 	"fmt"
 	"io/ioutil"

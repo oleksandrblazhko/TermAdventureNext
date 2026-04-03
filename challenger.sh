@@ -1,13 +1,21 @@
 #!/bin/bash
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-TA_BIN=${TA_BIN=:"$CURRENT_DIR/term-adventure"}
+TA_BIN="${TA_BIN:-$CURRENT_DIR/termadventure}"
+
+# Convert CHALLENGE_FILE to absolute path if it isn't already
+if [ -n "$CHALLENGE_FILE" ]; then
+    case "$CHALLENGE_FILE" in
+        /*) ;;  # already absolute
+        *) CHALLENGE_FILE="$(cd "$(dirname "$CHALLENGE_FILE")" && pwd)/$(basename "$CHALLENGE_FILE")" ;;
+    esac
+fi
+
 if [ ! -e $CHALLENGE_FILE ];
 then
     echo "Challenge file $CHALLENGE_FILE does not exist."
     exit 1;
 fi
-CHALLENGE_NAME=${CHALLENGE_NAME=:"$(basename $CHALLENGE_FILE | sed 's/\.[^\.]*$//')"}
-
+CHALLENGE_NAME="${CHALLENGE_NAME:-$(basename "$CHALLENGE_FILE" | sed 's/\.[^.]*$//')}"
 # Prepare global ENV variables for child processes
 export TA_BIN
 export CHALLENGE_FILE
