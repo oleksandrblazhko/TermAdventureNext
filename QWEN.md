@@ -76,6 +76,17 @@ test: true
 | `postcmd` | `postcmd` | Команда, що виконується ПІСЛЯ проходження рівня |
 | `postprintcmd` | `postprintcmd` | Команда, що виконується ПІСЛЯ друку тексту рівня |
 | `bgjobs` | `bgjobs` | Boolean — чи використовує рівень фонові завдання |
+| `timelimit` | `timelimit` | **int** — ліміт часу на рівень у секундах (0 = без обмежень) |
+
+**Приклад використання `timelimit`:**
+
+```yaml
+name: quick_task
+test: test -f /tmp/report.txt
+timelimit: 300   # 5 хвилин
+
+У вас є 5 хвилин щоб створити файл /tmp/report.txt!
+```
 
 ---
 
@@ -432,6 +443,97 @@ func (c *Challenge) SetConfigVal(name string, value string) {
 | `$HOME/.ta_level_restart` | Якщо існує — буде перезапущено PreLevelCmd поточного рівня |
 
 Обидва видаляються після обробки.
+
+### 14. Система таймерів (ліміт часу на рівень)
+
+**Новий функціонал** — можна встановити обмеження часу на виконання кожного рівня окремо.
+
+#### Як працює
+
+```
+1. При переході на новий рівень (GoToNextLevel):
+   - challenge.SaveLevelStartTime() → записує поточний час (unix timestamp)
+     у файл $HOME/.ta_level_start_time
+
+2. При друці рівня (якщо last_level_printed != "yes"):
+   - challenge.SaveLevelStartTime() → оновлює час старту
+
+3. При кожному prompt_command у ta_bashrc:
+   a. $TA_BIN --get-level-timelimit → отримує ліміт поточного рівня
+   б. Якщо ліміт > 0:
+      - $TA_BIN --check-level-time → перевіряє чи час вичерпано
+      - Якщо так → виводить "⏰ Час на цей рівень вичерпано!"
+      - $TA_BIN --print-level-timer → отримує залишок часу
+      - Форматує у "Xm YYs" і додає у PS1
+```
+
+#### Структура Level (оновлена)
+
+**Файл:** `levels/levels.go`
+
+```go
+type Level struct {
+    Name              string
+    PreLevelCmd       string `yaml:"precmd"`
+    PostLevelCmd      string `yaml:"postcmd"`
+    PostLevelPrintCmd string `yaml:"postprintcmd"`
+    Text              string
+    TestCmd           string   `yaml:"test"`
+    NextLevels        []string `yaml:"next"`
+    BackgroundJobs    bool     `yaml:"bgjobs"`
+    TimeLimit         int      `yaml:"timelimit"`  // ← нове поле
+}
+```
+
+#### Нові методи Challenge
+
+| Метод | Опис | Повертає |
+|-------|------|----------|
+| `GetLevelTimeLimit()` | Ліміт часу поточного рівня | `int` (секунди), 0 = немає |
+| `SaveLevelStartTime()` | Записує час старту у файл | — |
+| `CheckLevelTimeExpired()` | Чи вичерпано час | `bool` |
+| `GetLevelTimeRemaining()` | Залишок часу | `int` (секунди), -1 = немає ліміту |
+
+#### Нові CLI прапори (main.go)
+
+| Прапор | Опис | Вивід |
+|--------|------|-------|
+| `--get-level-timelimit` | Ліміт часу поточного рівня | `300` |
+| `--check-level-time` | Чи час вичерпано | exit 0 = так, 1 = ні |
+| `--print-level-timer` | Залишок часу | `245` (секунди) |
+
+#### Формат промпту з таймером
+
+Без таймеру:
+```
+14:32:07 [sample_challenge l00][user@host:/tmp]$ 
+```
+
+З таймером:
+```
+14:32:07 [4m 23s] [sample_challenge l00][user@host:/tmp]$ 
+             ^^^^^^
+          залишок часу
+```
+
+Якщо час вичерпано:
+```
+⏰ Час на цей рівень вичерпано!
+
+14:32:07 [0m 00s] [sample_challenge l00][user@host:/tmp]$ 
+```
+
+#### Файл збереження часу
+
+**Шлях:** `$HOME/.ta_level_start_time`
+
+**Вміст:** unix timestamp (кількість секунд з 1970-01-01)
+
+```
+1712150400
+```
+
+Видаляється при завершенні сесії (`challenger.sh`).
 
 ---
 
