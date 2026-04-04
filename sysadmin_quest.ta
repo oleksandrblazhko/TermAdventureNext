@@ -1,5 +1,5 @@
 name: intro
-test: test "$(pwd)" = "/tmp"
+test: test $(pwd) = "/tmp"
 timelimit: 300
 score: 10
 next: [workspace]
@@ -24,7 +24,7 @@ next: [workspace]
 
 name: workspace
 precmd: rm -rf /tmp/sysadmin_quest 2>/dev/null
-test: 'test -d /tmp/sysadmin_quest && test "$(pwd)" = "/tmp/sysadmin_quest"'
+test: test -d /tmp/sysadmin_quest && test $(pwd) = /tmp/sysadmin_quest
 timelimit: 240
 score: 15
 next: [config]
@@ -48,7 +48,7 @@ next: [config]
 
 name: config
 precmd: mkdir -p /tmp/sysadmin_quest && echo -e "server=localhost\nport=8080\ndb_password=secret123" > /tmp/sysadmin_quest/server.conf
-test: 'test -f /tmp/sysadmin_quest/server.conf && grep -q "db_password" /tmp/sysadmin_quest/server.conf'
+test: test -f /tmp/sysadmin_quest/server.conf && grep -q db_password /tmp/sysadmin_quest/server.conf
 timelimit: 300
 score: 20
 next: [copy_backup]
