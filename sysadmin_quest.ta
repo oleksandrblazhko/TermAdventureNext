@@ -1,6 +1,6 @@
 name: intro
-test: test $(pwd) = "/tmp"
-timelimit: 300
+test: test $(pwd) = "$HOME"
+timelimit: 30
 score: 10
 next: [workspace]
 
@@ -11,45 +11,40 @@ next: [workspace]
 Ти — новий співробітник IT-відділу. Твоє перше завдання —
 показати, що ти вмієш орієнтуватися у файловій системі.
 
-**Твоє завдання:** перейди у директорію `/tmp`
+**Твоє завдання:** перейди у свою домашню директорію
 
 Команди для використання:
 - **cd** — зміна директорії (change directory)
 - **pwd** — показати поточну директорію (print working directory)
 - **ls** — переглянути вміст директорії
 
-Підказка: команда `cd /tmp` перенесе тебе у потрібне місце.
-
 --------------------
 
 name: workspace
-precmd: rm -rf /tmp/sysadmin_quest 2>/dev/null
-test: test -d /tmp/sysadmin_quest && test $(pwd) = /tmp/sysadmin_quest
-timelimit: 240
+precmd: rm -rf $HOME/sysadmin_quest 2>/dev/null
+test: test -d $HOME/sysadmin_quest && test $(pwd) = $HOME/sysadmin_quest
+timelimit: 30
 score: 15
 next: [config]
 
 # Рівень 2: Створення робочого простору
 
-Чудово! Ти знайшов `/tmp`. Тепер час створити своє робоче місце.
+Чудово! Ти знайшов свою домашню директорію. Тепер час створити своє робоче місце.
 
 **Твоє завдання:**
-1. Створи директорію `/tmp/sysadmin_quest`
+1. Створи директорію `$HOME/sysadmin_quest`
 2. Перейди у неї
 
 Команди для використання:
 - **mkdir** — створення директорії (make directory)
 - **cd** — перехід у створену директорію
 
-Підказка: `mkdir /tmp/sysadmin_quest` створить директорію,
-а потім `cd /tmp/sysadmin_quest` перенесе тебе всередину.
-
 --------------------
 
 name: config
-precmd: mkdir -p /tmp/sysadmin_quest && echo "server=localhost" > /tmp/sysadmin_quest/server.conf && echo "port=8080" >> /tmp/sysadmin_quest/server.conf && echo "db_password=secret123" >> /tmp/sysadmin_quest/server.conf
-test: test -f /tmp/sysadmin_quest/server.conf && grep -q db_password /tmp/sysadmin_quest/server.conf
-timelimit: 300
+precmd: mkdir -p $HOME/sysadmin_quest && echo "server=localhost" > $HOME/sysadmin_quest/server.conf && echo "port=8080" >> $HOME/sysadmin_quest/server.conf && echo "db_password=secret123" >> $HOME/sysadmin_quest/server.conf
+test: test -f $HOME/sysadmin_quest/server.conf && grep -q db_password $HOME/sysadmin_quest/server.conf
+timelimit: 30
 score: 20
 next: [copy_backup]
 
@@ -68,15 +63,12 @@ next: [copy_backup]
 - **cat** — вивести вміст файлу
 - **grep** — пошук тексту у файлі
 
-Підказка: `cat server.conf` покаже весь вміст,
-а `grep "db_password" server.conf` знайде потрібний рядок.
-
 --------------------
 
 name: copy_backup
-precmd: mkdir -p /tmp/sysadmin_quest && echo "server=localhost" > /tmp/sysadmin_quest/server.conf && echo "port=8080" >> /tmp/sysadmin_quest/server.conf && echo "db_password=secret123" >> /tmp/sysadmin_quest/server.conf
-test: test -f /tmp/sysadmin_quest/server.conf.bak
-timelimit: 240
+precmd: mkdir -p $HOME/sysadmin_quest && echo "server=localhost" > $HOME/sysadmin_quest/server.conf && echo "port=8080" >> $HOME/sysadmin_quest/server.conf && echo "db_password=secret123" >> $HOME/sysadmin_quest/server.conf
+test: test -f $HOME/sysadmin_quest/server.conf.bak
+timelimit: 30
 score: 15
 next: [reorganize]
 
@@ -93,15 +85,12 @@ next: [reorganize]
 Команди для використання:
 - **cp** — копіювання файлів (copy)
 
-Підказка: `cp server.conf server.conf.bak` створить
-резервну копію конфігурації.
-
 --------------------
 
 name: reorganize
-precmd: mkdir -p /tmp/sysadmin_quest && echo '#!/bin/bash' > /tmp/sysadmin_quest/check.sh && echo 'echo System Check OK' >> /tmp/sysadmin_quest/check.sh && echo "config_data" > /tmp/sysadmin_quest/config.ini && echo "log_entry_1" > /tmp/sysadmin_quest/app.log
-test: test -f /tmp/sysadmin_quest/backup/server.conf.bak && test -f /tmp/sysadmin_quest/backup/config.ini && test -f /tmp/sysadmin_quest/scripts/check.sh
-timelimit: 360
+precmd: mkdir -p $HOME/sysadmin_quest && echo '#!/bin/bash' > $HOME/sysadmin_quest/check.sh && echo 'echo System Check OK' >> $HOME/sysadmin_quest/check.sh && echo "config_data" > $HOME/sysadmin_quest/config.ini && echo "log_entry_1" > $HOME/sysadmin_quest/app.log
+test: test -f $HOME/sysadmin_quest/backup/server.conf.bak && test -f $HOME/sysadmin_quest/backup/config.ini && test -f $HOME/sysadmin_quest/scripts/check.sh
+timelimit: 30
 score: 25
 next: [secure]
 
@@ -121,19 +110,12 @@ next: [secure]
 - **mv** — переміщення файлів (move)
 - **ls** — перевірка результату
 
-Підказка:
-```
-mkdir backup scripts
-mv server.conf.bak config.ini backup/
-mv check.sh scripts/
-```
-
 --------------------
 
 name: secure
-precmd: mkdir -p /tmp/sysadmin_quest/scripts && echo '#!/bin/bash' > /tmp/sysadmin_quest/scripts/check.sh && echo 'echo System Check OK' >> /tmp/sysadmin_quest/scripts/check.sh
-test: test -x /tmp/sysadmin_quest/scripts/check.sh
-timelimit: 240
+precmd: mkdir -p $HOME/sysadmin_quest/scripts && echo '#!/bin/bash' > $HOME/sysadmin_quest/scripts/check.sh && echo 'echo System Check OK' >> $HOME/sysadmin_quest/scripts/check.sh
+test: test -x $HOME/sysadmin_quest/scripts/check.sh
+timelimit: 30
 score: 20
 next: [find_logs]
 
@@ -151,16 +133,12 @@ next: [find_logs]
 - **chmod** — зміна прав доступу (change mode)
 - **ls -l** — перевірка прав доступу
 
-Підказка: `chmod +x scripts/check.sh` зробить файл виконуваним.
-Перевір результат командою `ls -l scripts/check.sh` —
-має з'явитися `x` (execute).
-
 --------------------
 
 name: find_logs
-precmd: 'mkdir -p /tmp/sysadmin_quest/logs && echo "ERROR: Connection failed" > /tmp/sysadmin_quest/logs/app.log && echo "INFO: System started" >> /tmp/sysadmin_quest/logs/app.log && echo "WARNING: Low memory" >> /tmp/sysadmin_quest/logs/app.log && echo "ERROR: Disk full" >> /tmp/sysadmin_quest/logs/app.log && echo "INFO: Backup complete" >> /tmp/sysadmin_quest/logs/app.log'
-test: grep -q "ERROR" /tmp/sysadmin_quest/logs/app.log
-timelimit: 300
+precmd: 'mkdir -p $HOME/sysadmin_quest/logs && echo "ERROR: Connection failed" > $HOME/sysadmin_quest/logs/app.log && echo "INFO: System started" >> $HOME/sysadmin_quest/logs/app.log && echo "WARNING: Low memory" >> $HOME/sysadmin_quest/logs/app.log && echo "ERROR: Disk full" >> $HOME/sysadmin_quest/logs/app.log && echo "INFO: Backup complete" >> $HOME/sysadmin_quest/logs/app.log'
+test: grep -q "ERROR" $HOME/sysadmin_quest/logs/app.log
+timelimit: 30
 score: 20
 next: [cleanup]
 
@@ -179,15 +157,12 @@ next: [cleanup]
 - **cat** — перегляд файлу
 - **grep** — пошук тексту
 
-Підказка: `grep "ERROR" logs/app.log` покаже
-тільки рядки з помилками. Скільки їх знайшло?
-
 --------------------
 
 name: cleanup
-precmd: mkdir -p /tmp/sysadmin_quest/temp && echo "temp_data_1" > /tmp/sysadmin_quest/temp/file1.tmp && echo "temp_data_2" > /tmp/sysadmin_quest/temp/file2.tmp
-test: test ! -d /tmp/sysadmin_quest/temp
-timelimit: 180
+precmd: mkdir -p $HOME/sysadmin_quest/temp && echo "temp_data_1" > $HOME/sysadmin_quest/temp/file1.tmp && echo "temp_data_2" > $HOME/sysadmin_quest/temp/file2.tmp
+test: test ! -d $HOME/sysadmin_quest/temp
+timelimit: 30
 score: 15
 next: [final]
 
@@ -205,14 +180,12 @@ next: [final]
 - **rm** — видалення файлів/директорій (remove)
 - **ls** — перевірка що видалено
 
-Підказка: `rm -rf temp/` видалить директорію
-та весь її вміст. Будь обережний з цією командою!
-
 --------------------
 
 name: final
-test: false
+test: true
 score: 30
+postcmd: rm -rf $HOME/sysadmin_quest
 
 # Фініш!
 
@@ -236,5 +209,6 @@ score: 30
 
 Тепер ти готовий до реальних завдань системного адміністрування!
 Лягай та відпочивай — ти це заслужив.
+Робочі файли автоматично видалено.
 
 --------------------
