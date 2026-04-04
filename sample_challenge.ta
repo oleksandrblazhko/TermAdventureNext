@@ -1,6 +1,7 @@
 name: l00
 test: test $(pwd) = "/tmp"
-timelimit: 10
+timelimit: 300
+score: 10
 next: [l01-1, l01-2]
 
 # First alternative bash excercise
@@ -21,12 +22,16 @@ Got it?
 
 I am pretty sure you do. Now use this cd command and go to the /tmp directory
 
+**Цей рівень вартий 10 балів. У вас є 5 хвилин!**
+
 --------------------
 
 name: l01-1
 precmd: echo "Hi there!" > /tmp/ta_test
 postcmd: rm /tmp/ta_test
 test: test $(pwd) = "$HOME"
+timelimit: 180
+score: 15
 next: [l02]
 
 I see you made it to level01, awesome !
@@ -39,12 +44,16 @@ will end up in your home directory, wherever that might be.
 
 (Note: you might want to check /tmp/ta_test)
 
+**Цей рівень вартий 15 балів. У вас є 3 хвилини!**
+
 --------------------
 
 name: l01-2
 precmd: echo "Hi there!" > /tmp/ta_test
 postcmd: rm /tmp/ta_test
 test: test $(pwd) = "$HOME"
+timelimit: 180
+score: 15
 next: [l02]
 
 I see you made it to level02, awesome !
@@ -57,13 +66,19 @@ will end up in your home directory, wherever that might be.
 
 (Note: you might want to check /tmp/ta_test)
 
+**Цей рівень вартий 15 балів. У вас є 3 хвилини!**
+
 --------------------
 
 name: l02
 test: false
+score: 20
 
 I see you made it again, awesome! That's all for now, so lay back and enjoy your
 shell!
+
+**Фінальний рівень вартий 20 балів!**
+**Загальна кількість балів: 60**
 
 --------------------
 

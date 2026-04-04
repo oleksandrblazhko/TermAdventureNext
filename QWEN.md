@@ -435,6 +435,143 @@ func (c *Challenge) SetConfigVal(name string, value string) {
 # (автоматично шукає challenge.yaml)
 ```
 
+#### Послідовність кроків для використання прикладів шаблонів
+
+**Крок 1: Підготовка файлів шаблону**
+
+Переконайся, що у тебе є два файли:
+
+1. **`sample_challenge.tpl`** - файл шаблону з Go template синтаксисом
+2. **`sample_challenge.yaml`** - файл змінних для шаблону
+
+Обидва файли вже є у проекті.
+
+**Крок 2: Генерація `.ta` файлу з шаблону**
+
+Виконай команду для створення фінального файлу завдання:
+
+```bash
+./term-adventure -g sample_challenge.tpl sample_challenge.yaml > generated_challenge.ta
+```
+
+Або довга форма:
+
+```bash
+./term-adventure --generate-from-template sample_challenge.tpl sample_challenge.yaml > generated_challenge.ta
+```
+
+**Що відбувається:**
+- Шаблонізатор читає `sample_challenge.tpl`
+- Підставляє значення з `sample_challenge.yaml` (у цьому випадку `names: [level01, level02]`)
+- Генерує два рівні `l01-1` та `l01-2` з однаковою інструкцією але різними назвами
+- Результат записується у `generated_challenge.ta`
+
+**Крок 3: (Опціонально) Шифрування файлу завдання**
+
+Якщо хочеш захистити файл від перегляду студентами:
+
+```bash
+./term-adventure --enc generated_challenge.ta > generated_challenge.ta.enc
+```
+
+> **Важливо:** бінарник має бути зібраний з тим самим ключем шифрування, інакше дешифрування не спрацює.
+
+**Крок 4: Запуск челенджу**
+
+*Варіант А: Через `challenger.sh`*
+
+Відредануй `sample_challenge.sh` або створи свій скрипт:
+
+```bash
+#!/bin/bash
+export CHALLENGE_FILE=./generated_challenge.ta
+./challenger.sh
+```
+
+Зроби його виконуваним:
+
+```bash
+chmod +x sample_challenge.sh
+```
+
+Запусти:
+
+```bash
+./sample_challenge.sh
+```
+
+*Варіант Б: Пряме використання бінарника*
+
+Для тестування без оболонки challenger.sh:
+
+```bash
+./term-adventure --print generated_challenge.ta
+```
+
+Ця команда надрукає всі рівні у структурованому вигляді.
+
+**Крок 5: Перевірка поточного рівня**
+
+Під час активної сесії (в терміналі з challenger.sh):
+
+```bash
+# Назва поточного рівня
+./term-adventure --print-level generated_challenge.ta
+
+# Повний текст поточного рівня
+./term-adventure --print-current-level generated_challenge.ta
+
+# Перевірка чи рівень пройдено (exit code 0 = так)
+./term-adventure --check-current-level generated_challenge.ta
+```
+
+**Крок 6: Завершення сесії**
+
+При виході з bash сесії `challenger.sh` автоматично:
+- Видаляє `$HOME/.tahistory` (історія команд)
+- Видаляє `$HOME/.config/<challenge_name>/` (прогрес)
+- Видаляє `$HOME/.ta_level_start_time` (час старту рівня)
+
+**Повний приклад сесії**
+
+```bash
+# 1. Генерація
+./term-adventure -g sample_challenge.tpl sample_challenge.yaml > my_challenge.ta
+
+# 2. Запуск
+export CHALLENGE_FILE=./my_challenge.ta
+./challenger.sh
+
+# Всередині сесії користувач бачить:
+# [my_challenge l00][user@host:~]$
+#
+# І інструкцію рівня l00
+
+# 3. Користувач виконує завдання:
+cd /tmp
+
+# 4. Автоматична перевірка при наступному prompt
+# Якщо test: test $(pwd) = "/tmp" проходить → перехід на наступний рівень
+
+# 5. Вихід
+exit
+```
+
+**Структура згенерованого файлу**
+
+Після генерації з `sample_challenge.tpl` та `sample_challenge.yaml` файл `generated_challenge.ta` міститиме:
+
+1. **Рівень l00** - початковий (перехід у `/tmp`)
+2. **Рівень l01-1** - для `level01` з names списку
+3. **Рівень l01-2** - для `level02` з names списку
+4. **Рівень l02** - фінальний рівень
+
+Кожен рівень має:
+- Унікальний ID (MD5 хеш)
+- Команду тесту (`test`)
+- Список наступних рівнів (`next`)
+- Текст інструкції у Markdown форматі
+
 ### 13. Спеціальні файли-сентинелі
 
 | Файл | Призначення |

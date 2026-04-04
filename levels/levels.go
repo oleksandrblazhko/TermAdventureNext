@@ -40,6 +40,7 @@ type Level struct {
 	NextLevels        []string `yaml:"next"`
 	BackgroundJobs    bool     `yaml:"bgjobs"`
 	TimeLimit         int      `yaml:"timelimit"`
+	Score             int      `yaml:"score"`
 }
 
 func (level *Level) Print(pretty_print_flag bool, print_sleep_time int) {
@@ -347,4 +348,103 @@ func (c *Challenge) GetLevelTimeRemaining() int {
 		return 0
 	}
 	return int(remaining)
+}
+
+// GetLevelScore повертає кількість балів за поточний рівень
+func (c *Challenge) GetLevelScore() int {
+	_, index := c.IDToLevel(*c.CurrentLevel)
+	return c.Levels[index].Score
+}
+
+// GetTotalScore повертає загальну кількість накопичених балів
+func (c *Challenge) GetTotalScore() int {
+	homedir := os.Getenv("HOME")
+	if homedir == "" {
+		usr, err := user.Current()
+		if err == nil {
+			homedir = usr.HomeDir
+		}
+	}
+	if homedir == "" {
+		return 0
+	}
+
+	filePath := homedir + "/.ta_total_score"
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return 0
+	}
+
+	var score int
+	fmt.Sscanf(string(data), "%d", &score)
+	return score
+}
+
+// AddScore додає бали до загального рахунку (від'ємні значення знімають бали)
+func (c *Challenge) AddScore(points int) {
+	currentScore := c.GetTotalScore()
+	newScore := currentScore + points
+
+	homedir := os.Getenv("HOME")
+	if homedir == "" {
+		usr, err := user.Current()
+		if err == nil {
+			homedir = usr.HomeDir
+		}
+	}
+	if homedir == "" {
+		return
+	}
+
+	filePath := homedir + "/.ta_total_score"
+	os.WriteFile(filePath, []byte(fmt.Sprintf("%d", newScore)), 0644)
+}
+
+// ResetScore скидає загальний рахунок до нуля
+func (c *Challenge) ResetScore() {
+	homedir := os.Getenv("HOME")
+	if homedir == "" {
+		usr, err := user.Current()
+		if err == nil {
+			homedir = usr.HomeDir
+		}
+	}
+	if homedir == "" {
+		return
+	}
+
+	filePath := homedir + "/.ta_total_score"
+	os.WriteFile(filePath, []byte("0"), 0644)
+}
+
+// CheckAndApplyLevelScore перевіряє чи рівень пройдено вчасно і нараховує/знімає бали
+// Повертає: (бали додано, бали знято, повідомлення)
+func (c *Challenge) CheckAndApplyLevelScore() (int, int, string) {
+	score := c.GetLevelScore()
+	if score == 0 {
+		return 0, 0, "" // Бали не встановлено для цього рівня
+	}
+
+	timeExpired := c.CheckLevelTimeExpired()
+	timeLimit := c.GetLevelTimeLimit()
+
+	if timeLimit <= 0 {
+		// Ліміт часу не встановлено — просто нараховуємо повні бали
+		c.AddScore(score)
+		return score, 0, fmt.Sprintf("✅ Отримано %d балів!", score)
+	}
+
+	if timeExpired {
+		// Час вичерпано — знімаємо 50% балів
+		penalty := score / 2
+		if penalty < 1 {
+			penalty = 1 // Мінімум 1 бал штрафу
+		}
+		c.AddScore(-penalty)
+		return 0, penalty, fmt.Sprintf("⏰ Час вичерпано! Знято %d балів", penalty)
+	}
+
+	// Успішно вчасно — нараховуємо повні бали
+	c.AddScore(score)
+	return score, 0, fmt.Sprintf("✅ Отримано %d балів вчасно!", score)
 }

@@ -17,7 +17,7 @@ function prompt_command() {
     if [ -n "$TIME_LIMIT" ] && [ "$TIME_LIMIT" != "0" ] && [ "$TIME_LIMIT" != "-1" ]; then
         if $TA_BIN --check-level-time $CHALLENGE_FILE 2>/dev/null; then
             echo ""
-            echo "Час на цей рівень вичерпано!"
+            echo "⏰ Час на цей рівень вичерпано!"
             echo ""
             # Можна додати авто-перехід або вихід — залежно від бажання
             # exit 0  # розкоментувати для авто-виходу
@@ -32,9 +32,26 @@ function prompt_command() {
         else
             local TIME_STR="0m 00s"
         fi
-        export PS1=" [$TIME_STR] $($TA_BIN --print-identifier $CHALLENGE_FILE)[\u:\w]\$ "
+        
+        # Отримуємо загальний рахунок
+        local TOTAL_SCORE=$($TA_BIN --get-total-score $CHALLENGE_FILE 2>/dev/null)
+        if [ -z "$TOTAL_SCORE" ]; then
+            TOTAL_SCORE=0
+        fi
+        
+        export PS1="[${TOTAL_SCORE} pts] [$TIME_STR] $($TA_BIN --print-identifier $CHALLENGE_FILE)[\u:\w]\$ "
     else
-        export PS1='$($TA_BIN --print-identifier $CHALLENGE_FILE)[\u:\w]$ '
+        # Отримуємо загальний рахунок (навіть без таймеру)
+        local TOTAL_SCORE=$($TA_BIN --get-total-score $CHALLENGE_FILE 2>/dev/null)
+        if [ -z "$TOTAL_SCORE" ]; then
+            TOTAL_SCORE=0
+        fi
+        
+        if [ "$TOTAL_SCORE" != "0" ]; then
+            export PS1="[${TOTAL_SCORE} pts] $($TA_BIN --print-identifier $CHALLENGE_FILE)[\u:\w]\$ "
+        else
+            export PS1='$($TA_BIN --print-identifier $CHALLENGE_FILE)[\u:\w]$ '
+        fi
     fi
 }
 export PROMPT_COMMAND=prompt_command

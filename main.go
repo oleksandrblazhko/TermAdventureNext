@@ -46,6 +46,14 @@ func main() {
 		"check whether time for the current level has expired (sets correct exit code)")
 	print_level_timer_flag := flag.Bool("print-level-timer", false,
 		"print remaining time for the current level in seconds and exit")
+	get_level_score_flag := flag.Bool("get-level-score", false,
+		"print the score for the current level and exit")
+	get_total_score_flag := flag.Bool("get-total-score", false,
+		"print the total accumulated score and exit")
+	apply_score_flag := flag.Bool("apply-level-score", false,
+		"check if level is passed and apply score (adds points if timely, removes if late)")
+	reset_score_flag := flag.Bool("reset-score", false,
+		"reset the total score to zero")
 
 	flag.Parse()
 
@@ -196,7 +204,37 @@ func main() {
 		os.Exit(0)
 	}
 
+	if *get_level_score_flag {
+		fmt.Printf("%d", challenge.GetLevelScore())
+		os.Exit(0)
+	}
+
+	if *get_total_score_flag {
+		fmt.Printf("%d", challenge.GetTotalScore())
+		os.Exit(0)
+	}
+
+	if *apply_score_flag {
+		added, removed, message := challenge.CheckAndApplyLevelScore()
+		if message != "" {
+			fmt.Println(message)
+		}
+		if added > 0 || removed > 0 {
+			os.Exit(0)
+		} else {
+			os.Exit(1) // No score configured for this level
+		}
+	}
+
+	if *reset_score_flag {
+		challenge.ResetScore()
+		fmt.Println("Total score has been reset to zero.")
+		os.Exit(0)
+	}
+
 	if challenge.CheckCurrentLevel() {
+		// Apply score before moving to next level
+		challenge.CheckAndApplyLevelScore()
 		challenge.GoToNextLevel()
 		challenge.SaveLevelStartTime()
 	}

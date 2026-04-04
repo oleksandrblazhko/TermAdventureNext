@@ -28,6 +28,7 @@ bash --rcfile $CURRENT_DIR/ta_bashrc
 rm -rf $HOME/.tahistory
 rm -rf $HOME/.config/$CHALLENGE_NAME
 rm -f $HOME/.ta_level_start_time
+rm -f $HOME/.ta_total_score
 
 # Unset global ENV variables
 unset TA_BIN
