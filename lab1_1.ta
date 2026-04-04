@@ -17,7 +17,7 @@ next: [uname_level]
 --------------------
 
 name: uname_level
-precmd: mkdir -p $HOME/lab1_quest
+precmd: mkdir -p $HOME/lab1_quest && cd $HOME/lab1_quest
 test: 'grep -q "$(uname -a)" $HOME/lab1_quest/uname_info.txt'
 timelimit: 60
 score: 10
@@ -30,8 +30,9 @@ next: [pwd_level]
 Тепер дізнайся більше про свій комп'ютер за допомогою команди **uname**.
 
 **Твоє завдання:**
-1. Виконай `uname -a` щоб отримати повну інформацію
-2. Збережи результат у файл `uname_info.txt`
+1. Перейди у `$HOME/lab1_quest`
+2. Виконай `uname -a` щоб отримати повну інформацію
+3. Збережи результат у файл `uname_info.txt`
 
 Прапорці uname:
 - **-n** — мережева назва комп'ютера
