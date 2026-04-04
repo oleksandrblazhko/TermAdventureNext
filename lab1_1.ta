@@ -17,7 +17,7 @@ next: [uname_level]
 --------------------
 
 name: uname_level
-precmd: mkdir -p $HOME/lab1_quest && cd $HOME/lab1_quest
+precmd: mkdir -p $HOME/lab1_quest && cd $HOME/lab1_quest && rm -f $HOME/lab1_quest/uname_info.txt
 test: test -s $HOME/lab1_quest/uname_info.txt && grep -qi "linux" $HOME/lab1_quest/uname_info.txt
 timelimit: 60
 score: 10
