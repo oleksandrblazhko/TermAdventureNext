@@ -1,6 +1,6 @@
 name: l00
 test: test $(pwd) = "/tmp"
-timelimit: 300
+timelimit: 10
 score: 10
 next: [l01-1, l01-2]
 
@@ -30,7 +30,7 @@ name: l01-1
 precmd: echo "Hi there!" > /tmp/ta_test
 postcmd: rm /tmp/ta_test
 test: test $(pwd) = "$HOME"
-timelimit: 180
+timelimit: 10
 score: 15
 next: [l02]
 
@@ -52,7 +52,7 @@ name: l01-2
 precmd: echo "Hi there!" > /tmp/ta_test
 postcmd: rm /tmp/ta_test
 test: test $(pwd) = "$HOME"
-timelimit: 180
+timelimit: 10
 score: 15
 next: [l02]
 
