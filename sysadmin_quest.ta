@@ -47,7 +47,7 @@ next: [config]
 --------------------
 
 name: config
-precmd: mkdir -p /tmp/sysadmin_quest && echo -e "server=localhost\nport=8080\ndb_password=secret123" > /tmp/sysadmin_quest/server.conf
+precmd: mkdir -p /tmp/sysadmin_quest && echo "server=localhost" > /tmp/sysadmin_quest/server.conf && echo "port=8080" >> /tmp/sysadmin_quest/server.conf && echo "db_password=secret123" >> /tmp/sysadmin_quest/server.conf
 test: test -f /tmp/sysadmin_quest/server.conf && grep -q db_password /tmp/sysadmin_quest/server.conf
 timelimit: 300
 score: 20
@@ -74,7 +74,7 @@ next: [copy_backup]
 --------------------
 
 name: copy_backup
-precmd: mkdir -p /tmp/sysadmin_quest && echo -e "server=localhost\nport=8080\ndb_password=secret123" > /tmp/sysadmin_quest/server.conf
+precmd: mkdir -p /tmp/sysadmin_quest && echo "server=localhost" > /tmp/sysadmin_quest/server.conf && echo "port=8080" >> /tmp/sysadmin_quest/server.conf && echo "db_password=secret123" >> /tmp/sysadmin_quest/server.conf
 test: test -f /tmp/sysadmin_quest/server.conf.bak
 timelimit: 240
 score: 15
@@ -99,7 +99,7 @@ next: [reorganize]
 --------------------
 
 name: reorganize
-precmd: mkdir -p /tmp/sysadmin_quest && echo -e '#!/bin/bash\necho '"'"'System Check OK'"'"'' > /tmp/sysadmin_quest/check.sh && echo "config_data" > /tmp/sysadmin_quest/config.ini && echo "log_entry_1" > /tmp/sysadmin_quest/app.log
+precmd: mkdir -p /tmp/sysadmin_quest && echo '#!/bin/bash' > /tmp/sysadmin_quest/check.sh && echo 'echo System Check OK' >> /tmp/sysadmin_quest/check.sh && echo "config_data" > /tmp/sysadmin_quest/config.ini && echo "log_entry_1" > /tmp/sysadmin_quest/app.log
 test: test -f /tmp/sysadmin_quest/backup/server.conf.bak && test -f /tmp/sysadmin_quest/backup/config.ini && test -f /tmp/sysadmin_quest/scripts/check.sh
 timelimit: 360
 score: 25
@@ -131,7 +131,7 @@ mv check.sh scripts/
 --------------------
 
 name: secure
-precmd: mkdir -p /tmp/sysadmin_quest/scripts && echo -e '#!/bin/bash\necho '"'"'System Check OK'"'"'' > /tmp/sysadmin_quest/scripts/check.sh
+precmd: mkdir -p /tmp/sysadmin_quest/scripts && echo '#!/bin/bash' > /tmp/sysadmin_quest/scripts/check.sh && echo 'echo System Check OK' >> /tmp/sysadmin_quest/scripts/check.sh
 test: test -x /tmp/sysadmin_quest/scripts/check.sh
 timelimit: 240
 score: 20
@@ -158,7 +158,7 @@ next: [find_logs]
 --------------------
 
 name: find_logs
-precmd: mkdir -p /tmp/sysadmin_quest/logs && echo "ERROR: Connection failed" > /tmp/sysadmin_quest/logs/app.log && echo "INFO: System started" >> /tmp/sysadmin_quest/logs/app.log && echo "WARNING: Low memory" >> /tmp/sysadmin_quest/logs/app.log && echo "ERROR: Disk full" >> /tmp/sysadmin_quest/logs/app.log && echo "INFO: Backup complete" >> /tmp/sysadmin_quest/logs/app.log
+precmd: 'mkdir -p /tmp/sysadmin_quest/logs && echo "ERROR: Connection failed" > /tmp/sysadmin_quest/logs/app.log && echo "INFO: System started" >> /tmp/sysadmin_quest/logs/app.log && echo "WARNING: Low memory" >> /tmp/sysadmin_quest/logs/app.log && echo "ERROR: Disk full" >> /tmp/sysadmin_quest/logs/app.log && echo "INFO: Backup complete" >> /tmp/sysadmin_quest/logs/app.log'
 test: grep -q "ERROR" /tmp/sysadmin_quest/logs/app.log
 timelimit: 300
 score: 20
@@ -214,27 +214,27 @@ name: final
 test: false
 score: 30
 
-# Фініш! 🏆
+# Фініш!
 
 **Вітаю! Ти успішно пройшов усі рівні квесту!**
 
 Ти опанував основні команди системного адміністратора:
 
-✅ **cd** — навігація по директоріях
-✅ **ls** — перегляд вмісту
-✅ **mkdir** — створення директорій
-✅ **cp** — копіювання файлів
-✅ **mv** — переміщення файлів
-✅ **rm** — видалення файлів
-✅ **cat** — перегляд файлів
-✅ **grep** — пошук тексту
-✅ **chmod** — зміна прав доступу
+- **cd** — навігація по директоріях
+- **ls** — перегляд вмісту
+- **mkdir** — створення директорій
+- **cp** — копіювання файлів
+- **mv** — переміщення файлів
+- **rm** — видалення файлів
+- **cat** — перегляд файлів
+- **grep** — пошук тексту
+- **chmod** — зміна прав доступу
 
 ---
 
 **Максимальна кількість балів: 170**
 
 Тепер ти готовий до реальних завдань системного адміністрування!
-Лягай та відпочивай — ти це заслужив. 😊
+Лягай та відпочивай — ти це заслужив.
 
 --------------------
