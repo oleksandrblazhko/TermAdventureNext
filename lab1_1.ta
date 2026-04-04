@@ -1,0 +1,246 @@
+name: intro
+test: test $(pwd) = "$HOME"
+timelimit: 60
+score: 5
+next: [uname_level]
+
+# Лабараторна робота 1: Базові команди Linux
+
+Вітаю! Цей квест допоможе тобі опанувати базові команди Linux.
+
+**Твоє перше завдання:** перейди у свою домашню директорію
+
+Команди для використання:
+- **cd** — перехід до домашньої директорії
+- **pwd** — перевірка поточного місця
+
+--------------------
+
+name: uname_level
+precmd: mkdir -p $HOME/lab1_quest
+test: 'grep -q "$(uname -a)" $HOME/lab1_quest/uname_info.txt'
+timelimit: 60
+score: 10
+next: [pwd_level]
+
+# Рівень 1: uname — інформація про систему
+
+Чудово! Ти у домашній директорії.
+
+Тепер дізнайся більше про свій комп'ютер за допомогою команди **uname**.
+
+**Твоє завдання:**
+1. Виконай `uname -a` щоб отримати повну інформацію
+2. Збережи результат у файл `uname_info.txt`
+
+Прапорці uname:
+- **-n** — мережева назва комп'ютера
+- **-m** — апаратна платформа
+- **-s** — назва ядра ОС
+- **-a** — повний опис (все разом)
+
+
+--------------------
+
+name: pwd_level
+test: 'grep -q "$HOME/lab1_quest" $HOME/lab1_quest/current_path.txt'
+timelimit: 60
+score: 10
+next: [whoami_level]
+
+# Рівень 2: pwd — де я знаходжусь?
+
+Команда **pwd** (print working directory) показує повний шлях
+від кореневого каталогу до поточного.
+
+**Твоє завдання:**
+1. Перейди у `$HOME/lab1_quest`
+2. Збережи поточний шлях у файл `current_path.txt`
+
+
+--------------------
+
+name: whoami_level
+test: 'grep -q "$(whoami)" $HOME/lab1_quest/my_user.txt'
+timelimit: 60
+score: 10
+next: [date_level]
+
+# Рівень 3: whoami — хто я?
+
+Команда **whoami** показує ім'я користувача,
+який запустив оболонку.
+
+**Твоє завдання:**
+Збережи ім'я свого користувача у файл `my_user.txt`
+
+
+--------------------
+
+name: date_level
+test: 'grep -q "день" $HOME/lab1_quest/today.txt && grep -q "місяця" $HOME/lab1_quest/today.txt && grep -q "року" $HOME/lab1_quest/today.txt'
+timelimit: 60
+score: 15
+next: [echo_level]
+
+# Рівень 4: date — поточна дата
+
+Команда **date** показує поточну дату та час.
+Вона підтримує форматування виводу.
+
+**Твоє завдання:**
+Виведи дату у форматі: "15 день 04 місяця 2026 року"
+і збережи у файл `today.txt`
+
+
+Більше форматів: `date --help`
+
+--------------------
+
+name: echo_level
+test: 'test -f $HOME/lab1_quest/my_path.txt && grep -q "/" $HOME/lab1_quest/my_path.txt'
+timelimit: 60
+score: 10
+next: [ls_level]
+
+# Рівень 5: echo та змінні середовища
+
+Команда **echo** виводить текст або значення змінних.
+Змінні середовища починаються з `$`.
+
+Наприклад, **$PATH** — це список каталогів,
+де система шукає виконувані файли.
+
+**Твоє завдання:**
+1. Переглянь змінну PATH: `echo $PATH`
+2. Збережи її значення у файл `my_path.txt`
+
+
+--------------------
+
+name: ls_level
+test: test -f $HOME/lab1_quest/dir_contents.txt
+timelimit: 60
+score: 10
+next: [cd_level]
+
+# Рівень 6: ls — вміст каталогу
+
+Команда **ls** (list) показує вміст каталогу.
+
+**Твоє завдання:**
+Збережи вміст каталогу `/etc` у файл `dir_contents.txt`
+
+
+--------------------
+
+name: cd_level
+test: test -f $HOME/lab1_quest/navigation.txt && grep -q "home" $HOME/lab1_quest/navigation.txt
+timelimit: 60
+score: 15
+next: [pushd_level]
+
+# Рівень 7: cd — навігація
+
+Команда **cd** (change directory) дозволяє переходити
+між каталогами.
+
+Особливості:
+- **cd ..** — перейти на рівень вище (батьківський каталог)
+- **cd** (без параметрів) — перейти додому
+- **cd /etc** — перейти до конкретного каталогу
+
+**Твоє завдання:**
+1. Перейди у `/etc`
+2. Перевір де ти: `pwd`
+3. Збережи шлях у `navigation.txt`
+
+
+--------------------
+
+name: pushd_level
+precmd: mkdir -p $HOME/lab1_quest/dir1 $HOME/lab1_quest/dir2
+test: test -f $HOME/lab1_quest/stack_history.txt
+timelimit: 60
+score: 15
+next: [popd_level]
+
+# Рівень 8: pushd — стек каталогів
+
+Команда **pushd** переходить у каталог і зберігає
+історію переходів у стеку.
+
+**Твоє завдання:**
+1. Виконай `pushd $HOME/lab1_quest/dir1`
+2. Виконай `pushd $HOME/lab1_quest/dir2`
+3. Збережи вміст стеку у файл `stack_history.txt`
+
+
+--------------------
+
+name: popd_level
+test: test -f $HOME/lab1_quest/return_path.txt
+timelimit: 60
+score: 15
+next: [less_level]
+
+# Рівень 9: popd — повернення зі стеку
+
+Команда **popd** повертає до попереднього каталогу
+зі стеку pushd.
+
+**Твоє завдання:**
+1. Виконай `popd` щоб повернутися
+2. Збережи поточний шлях у `return_path.txt`
+
+
+--------------------
+
+name: less_level
+precmd: echo "Це тестовий файл для команди less." > $HOME/lab1_quest/readme.txt && echo "Він містить кілька рядків тексту." >> $HOME/lab1_quest/readme.txt && echo "Для виходу натисни q." >> $HOME/lab1_quest/readme.txt && echo "Команда less дозволяє переглядати файл посторінково." >> $HOME/lab1_quest/readme.txt
+test: test -f $HOME/lab1_quest/less_done.txt
+timelimit: 60
+score: 15
+next: [final]
+
+# Рівень 10: less — посторінковий перегляд
+
+Команда **less** дозволяє переглядати вміст файлу
+посторінково. Для виходу натисни **q**.
+
+**Твоє завдання:**
+1. Переглянь файл: `less $HOME/lab1_quest/readme.txt`
+2. Натисни **q** для виходу
+3. Створи файл-підтвердження: `touch $HOME/lab1_quest/less_done.txt`
+
+--------------------
+
+name: final
+test: true
+score: 30
+postcmd: rm -rf $HOME/lab1_quest
+
+# Фініш! 🎓
+
+**Вітаю! Ти успішно пройшов усі рівні лабораторної роботи!**
+
+Ти опанував базові команди Linux:
+
+- **uname** — інформація про систему
+- **pwd** — поточний каталог
+- **whoami** — ім'я користувача
+- **date** — дата та час
+- **echo** — вивід змінних середовища
+- **ls** — вміст каталогу
+- **less** — посторінковий перегляд
+- **cd** — навігація
+- **pushd** — стек каталогів
+- **popd** — повернення зі стеку
+
+---
+
+**Максимальна кількість балів: 155**
+
+Робочі файли автоматично видалено.
+
+--------------------
