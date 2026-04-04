@@ -62,11 +62,11 @@ necessary for the test to pass.
 Validating a given ``.ta`` file
 --------------------------------
 
-The generated binary (``term-adventure``) also provides an option to check,
+The generated binary (``termadventure``) also provides an option to check,
 whether the ``.ta`` file is loaded correctly. In order to check file
 ``sample.ta`` you can run::
 
-        $ ./term-adventure --print sample.ta
+        $ ./termadventure --print sample.ta
 
 
 Validating user's progress
@@ -83,5 +83,5 @@ Once you have this hash and the home directory of the user which has managed to
 enter the level denoted by this hash, you can reverse-lookup the name of that
 level by executing::
 
-    $ ./term-adventure --detect-level ./sample.ta $HASH $HOMEDIR
+    $ ./termadventure --detect-level ./sample.ta $HASH $HOMEDIR
 

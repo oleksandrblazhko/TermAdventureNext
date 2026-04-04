@@ -183,21 +183,21 @@ commands:
 ### Генерація:
 
 ```bash
-./term-adventure -g quest.tpl quest.yaml > my_quest.ta
+./termadventure -g quest.tpl quest.yaml > my_quest.ta
 ```
 
 ## Крок 7: Тестування квесту
 
 ```bash
 # 1. Перегляд структури
-./term-adventure --print my_quest.ta
+./termadventure --print my_quest.ta
 
 # 2. Запуск сесії
 export CHALLENGE_FILE=./my_quest.ta
 ./challenger.sh
 
 # 3. Перевірка працездатності кожного рівня
-./term-adventure --check-current-level my_quest.ta
+./termadventure --check-current-level my_quest.ta
 echo $?  # 0 = пройдено, 1 = ні
 ```
 
@@ -207,10 +207,10 @@ echo $?  # 0 = пройдено, 1 = ні
 
 ```bash
 # Шифрування (якщо потрібно)
-./term-adventure --enc my_quest.ta > my_quest.ta.enc
+./termadventure --enc my_quest.ta > my_quest.ta.enc
 
 # Створення архіву для студентів
-zip student-quest.zip term-adventure challenger.sh ta_bashrc my_quest.ta.enc
+zip student-quest.zip termadventure challenger.sh ta_bashrc my_quest.ta.enc
 
 # Інструкція для студента
 cat > README_STUDENT.txt << 'EOF'

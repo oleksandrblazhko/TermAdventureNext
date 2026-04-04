@@ -337,8 +337,8 @@ func (c *Challenge) SetConfigVal(name string, value string) {
 ```
 1. Визначити CURRENT_DIR = директорія де знаходиться скрипт
    - $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-2. Встановити TA_BIN (дефолт: $CURRENT_DIR/term-adventure)
-   - ${TA_BIN:-$CURRENT_DIR/term-adventure}
+2. Встановити TA_BIN (дефолт: $CURRENT_DIR/termadventure)
+   - ${TA_BIN:-$CURRENT_DIR/termadventure}
 3. Перетворити CHALLENGE_FILE на абсолютний шлях:
    - Якщо починається з / → залишити як є
    - Інакше → $(cd "$(dirname file)" && pwd)/$(basename file)
@@ -429,9 +429,9 @@ func (c *Challenge) SetConfigVal(name string, value string) {
 **Приклад використання:**
 
 ```bash
-./term-adventure --generate-from-template challenge.tpl challenge.yaml
+./termadventure --generate-from-template challenge.tpl challenge.yaml
 # або коротко:
-./term-adventure -g challenge.tpl
+./termadventure -g challenge.tpl
 # (автоматично шукає challenge.yaml)
 ```
 
@@ -451,13 +451,13 @@ func (c *Challenge) SetConfigVal(name string, value string) {
 Виконай команду для створення фінального файлу завдання:
 
 ```bash
-./term-adventure -g sample_challenge.tpl sample_challenge.yaml > generated_challenge.ta
+./termadventure -g sample_challenge.tpl sample_challenge.yaml > generated_challenge.ta
 ```
 
 Або довга форма:
 
 ```bash
-./term-adventure --generate-from-template sample_challenge.tpl sample_challenge.yaml > generated_challenge.ta
+./termadventure --generate-from-template sample_challenge.tpl sample_challenge.yaml > generated_challenge.ta
 ```
 
 **Що відбувається:**
@@ -471,7 +471,7 @@ func (c *Challenge) SetConfigVal(name string, value string) {
 Якщо хочеш захистити файл від перегляду студентами:
 
 ```bash
-./term-adventure --enc generated_challenge.ta > generated_challenge.ta.enc
+./termadventure --enc generated_challenge.ta > generated_challenge.ta.enc
 ```
 
 > **Важливо:** бінарник має бути зібраний з тим самим ключем шифрування, інакше дешифрування не спрацює.
@@ -505,7 +505,7 @@ chmod +x sample_challenge.sh
 Для тестування без оболонки challenger.sh:
 
 ```bash
-./term-adventure --print generated_challenge.ta
+./termadventure --print generated_challenge.ta
 ```
 
 Ця команда надрукає всі рівні у структурованому вигляді.
@@ -516,13 +516,13 @@ chmod +x sample_challenge.sh
 
 ```bash
 # Назва поточного рівня
-./term-adventure --print-level generated_challenge.ta
+./termadventure --print-level generated_challenge.ta
 
 # Повний текст поточного рівня
-./term-adventure --print-current-level generated_challenge.ta
+./termadventure --print-current-level generated_challenge.ta
 
 # Перевірка чи рівень пройдено (exit code 0 = так)
-./term-adventure --check-current-level generated_challenge.ta
+./termadventure --check-current-level generated_challenge.ta
 ```
 
 **Крок 6: Завершення сесії**
@@ -536,7 +536,7 @@ chmod +x sample_challenge.sh
 
 ```bash
 # 1. Генерація
-./term-adventure -g sample_challenge.tpl sample_challenge.yaml > my_challenge.ta
+./termadventure -g sample_challenge.tpl sample_challenge.yaml > my_challenge.ta
 
 # 2. Запуск
 export CHALLENGE_FILE=./my_challenge.ta
@@ -717,16 +717,16 @@ export CHALLENGE_FILE=./my_challenge.ta
 
 | Команда | Опис |
 |---------|------|
-| `./term-adventure --print file.ta` | Надрукувати всі рівні у структурованому вигляді |
-| `./term-adventure --enc file.ta` | Зашифрувати файл |
-| `./term-adventure --dec file.enc` | Дешифрувати файл |
-| `./term-adventure --print-level file.ta` | Назва поточного рівня |
-| `./term-adventure --print-current-level file.ta` | Повний текст поточного рівня |
-| `./term-adventure --print-identifier file.ta` | Ідентифікатор `[challenge level]` |
-| `./term-adventure --print-challenge file.ta` | Назва челенджу |
-| `./term-adventure --check-current-level file.ta` | Exit 0 = пройдено, 1 = ні |
-| `./term-adventure --detect-level file.ta <hash> <homedir>` | Розшифрувати хеш → назву рівня |
-| `./term-adventure -g template.tpl vars.yaml` | Генерація .ta з шаблону |
+| `./termadventure --print file.ta` | Надрукувати всі рівні у структурованому вигляді |
+| `./termadventure --enc file.ta` | Зашифрувати файл |
+| `./termadventure --dec file.enc` | Дешифрувати файл |
+| `./termadventure --print-level file.ta` | Назва поточного рівня |
+| `./termadventure --print-current-level file.ta` | Повний текст поточного рівня |
+| `./termadventure --print-identifier file.ta` | Ідентифікатор `[challenge level]` |
+| `./termadventure --print-challenge file.ta` | Назва челенджу |
+| `./termadventure --check-current-level file.ta` | Exit 0 = пройдено, 1 = ні |
+| `./termadventure --detect-level file.ta <hash> <homedir>` | Розшифрувати хеш → назву рівня |
+| `./termadventure -g template.tpl vars.yaml` | Генерація .ta з шаблону |
 
 ---
 
@@ -760,7 +760,7 @@ export CHALLENGE_FILE=./my_challenge.ta
 
 | Файл | Призначення |
 |------|-------------|
-| `term-adventure` | Зібраний бінарник (НЕ вихідний код!) |
+| `termadventure` | Зібраний бінарник (НЕ вихідний код!) |
 | `challenger.sh` | Скрипт запуску сесії |
 | `ta_bashrc` | Кастомне середовище bash |
 | `challenge.ta` або `.ta.enc` | Файл завдання |
@@ -769,11 +769,11 @@ export CHALLENGE_FILE=./my_challenge.ta
 
 ```bash
 # Викладач шифрує:
-./term-adventure --enc my_challenge.ta > my_challenge.ta.enc
+./termadventure --enc my_challenge.ta > my_challenge.ta.enc
 
 # Студенту передається архів:
 student-challenge.zip
-├── term-adventure      # зібраний з тим самим ключем!
+├── termadventure      # зібраний з тим самим ключем!
 ├── challenger.sh
 ├── ta_bashrc
 └── challenge.ta.enc
@@ -811,3 +811,8 @@ go test
 
 - `${TA_BIN=:...}` → `${TA_BIN:-...}` — невірний синтаксис parameter expansion давав `:path` замість `path`
 - Відносні шляхи `CHALLENGE_FILE` → автоматичне перетворення на абсолютні
+
+
+# Інструкція з використання
+файл - Guide.md
+

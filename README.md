@@ -79,11 +79,11 @@ printed and the user can proceed to `level1`. In order to solve that level the
 `test` command needs to pass (return exit status code `0`). Once it does, the
 same procedure takes place.
 
-The generated binary (`term-adventure`) also provides an option to check,
+The generated binary (`termadventure`) also provides an option to check,
 whether the `.ta` file is loaded correctly. In order to check file
 `sample.ta` you can run
 
-        $ ./term-adventure --print sample.ta
+        $ ./termadventure --print sample.ta
 
 The binary uses a hash of many interesting things to keep track of the level
 you are currently in. Depending on the name of the challenge and whether you
@@ -98,4 +98,4 @@ Once you have this hash and the home directory of the user which has managed to
 enter the level denoted by this hash, you can reverse-lookup the name of that
 level by executing
 
-        $ ./term-adventure --detect-level ./sample.ta $HASH $HOMEDIR
+        $ ./termadventure --detect-level ./sample.ta $HASH $HOMEDIR

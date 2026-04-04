@@ -43,7 +43,7 @@ next: [pwd_level]
 --------------------
 
 name: pwd_level
-test: 'grep -q "$HOME/lab1_quest" $HOME/lab1_quest/current_path.txt'
+test: grep -q "$HOME/lab1_quest" $HOME/lab1_quest/current_path.txt
 timelimit: 60
 score: 10
 next: [whoami_level]

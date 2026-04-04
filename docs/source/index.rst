@@ -6,7 +6,7 @@
 Welcome to TA: Term Adventures's documentation!
 ===================================================
 
-Term Adventures (or ``term-adventures`` as a binary) is an
+Term Adventures (or ``termadventures`` as a binary) is an
 application for creating good old text adventures in and for GNU/Linux or
 pretty much any Unix/Posix compliant terminal.
 
