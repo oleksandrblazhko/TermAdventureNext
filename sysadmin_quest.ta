@@ -43,7 +43,7 @@ next: [config]
 
 name: config
 precmd: mkdir -p $HOME/sysadmin_quest && echo "server=localhost" > $HOME/sysadmin_quest/server.conf && echo "port=8080" >> $HOME/sysadmin_quest/server.conf && echo "db_password=secret123" >> $HOME/sysadmin_quest/server.conf
-test: test -f $HOME/sysadmin_quest/server.conf && grep -q db_password $HOME/sysadmin_quest/server.conf
+test: 'grep -q "db_password=secret123" $HOME/sysadmin_quest/found_password.txt'
 timelimit: 30
 score: 20
 next: [copy_backup]
@@ -58,6 +58,7 @@ next: [copy_backup]
 **Твоє завдання:**
 1. Переглянь вміст файлу `server.conf`
 2. Знайди рядок з паролем (db_password)
+3. Збережи знайдений рядок з паролем у файлі `found_password.txt`
 
 Команди для використання:
 - **cat** — вивести вміст файлу
