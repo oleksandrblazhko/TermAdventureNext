@@ -1,5 +1,5 @@
 name: intro
-test: test "$(pwd)" = "/tmp"
+test: 'test "$(pwd)" = "/tmp"'
 timelimit: 300
 score: 10
 next: [workspace]
@@ -24,7 +24,7 @@ next: [workspace]
 
 name: workspace
 precmd: rm -rf /tmp/sysadmin_quest 2>/dev/null
-test: test -d /tmp/sysadmin_quest && test "$(pwd)" = "/tmp/sysadmin_quest"
+test: 'test -d /tmp/sysadmin_quest && test "$(pwd)" = "/tmp/sysadmin_quest"'
 timelimit: 240
 score: 15
 next: [config]
@@ -48,7 +48,7 @@ next: [config]
 
 name: config
 precmd: mkdir -p /tmp/sysadmin_quest && echo -e "server=localhost\nport=8080\ndb_password=secret123" > /tmp/sysadmin_quest/server.conf
-test: test -f /tmp/sysadmin_quest/server.conf && grep -q "db_password" /tmp/sysadmin_quest/server.conf
+test: 'test -f /tmp/sysadmin_quest/server.conf && grep -q "db_password" /tmp/sysadmin_quest/server.conf'
 timelimit: 300
 score: 20
 next: [copy_backup]
@@ -99,7 +99,7 @@ next: [reorganize]
 --------------------
 
 name: reorganize
-precmd: mkdir -p /tmp/sysadmin_quest && echo -e "#!/bin/bash\necho 'System Check OK'" > /tmp/sysadmin_quest/check.sh && echo "config_data" > /tmp/sysadmin_quest/config.ini && echo "log_entry_1" > /tmp/sysadmin_quest/app.log
+precmd: mkdir -p /tmp/sysadmin_quest && echo -e '#!/bin/bash\necho '"'"'System Check OK'"'"'' > /tmp/sysadmin_quest/check.sh && echo "config_data" > /tmp/sysadmin_quest/config.ini && echo "log_entry_1" > /tmp/sysadmin_quest/app.log
 test: test -f /tmp/sysadmin_quest/backup/server.conf.bak && test -f /tmp/sysadmin_quest/backup/config.ini && test -f /tmp/sysadmin_quest/scripts/check.sh
 timelimit: 360
 score: 25
@@ -131,7 +131,7 @@ mv check.sh scripts/
 --------------------
 
 name: secure
-precmd: mkdir -p /tmp/sysadmin_quest/scripts && echo -e "#!/bin/bash\necho 'System Check OK'" > /tmp/sysadmin_quest/scripts/check.sh
+precmd: mkdir -p /tmp/sysadmin_quest/scripts && echo -e '#!/bin/bash\necho '"'"'System Check OK'"'"'' > /tmp/sysadmin_quest/scripts/check.sh
 test: test -x /tmp/sysadmin_quest/scripts/check.sh
 timelimit: 240
 score: 20
