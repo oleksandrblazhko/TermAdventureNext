@@ -1,5 +1,5 @@
 name: intro
-test: 'test "$(pwd)" = "/tmp"'
+test: test "$(pwd)" = "/tmp"
 timelimit: 300
 score: 10
 next: [workspace]
