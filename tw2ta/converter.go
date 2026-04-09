@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"strings"
-	"text/template"
 	"bytes"
 )
 
@@ -77,7 +76,7 @@ func generateIntroLevel(gs *GameState, challengeName string) string {
 
 **Ваше завдання:** Виконуйте кроки послідовно. Кожен крок — це окремий рівень.
 
-Введіть \`help\` щоб побачити доступні команди.`, 
+Введіть "help" щоб побачити доступні команди.`, 
 		challengeName, 
 		gs.Quests[0].Desc,
 		startRoomDesc)
@@ -127,7 +126,12 @@ func generateActionLevel(gs *GameState, action ActionStep, currentStep int, tota
 
 // generateFinalLevel - створює фінальний рівень
 func generateFinalLevel(gs *GameState) string {
-	text := `# 🎉 Вітаємо! Квест пройдено!
+	totalReward := 0
+	for _, quest := range gs.Quests {
+		totalReward += quest.Reward
+	}
+
+	text := fmt.Sprintf(`# 🎉 Вітаємо! Квест пройдено!
 
 Ви успішно виконали всі кроки челенджу!
 
@@ -135,18 +139,13 @@ func generateFinalLevel(gs *GameState) string {
 - Квестів пройдено: %d
 - Винагорода: %d балів
 
-Тепер ви можете завершити сесію командою \`exit\`.`
-
-	totalReward := 0
-	for _, quest := range gs.Quests {
-		totalReward += quest.Reward
-	}
+Тепер ви можете завершити сесію командою "exit".`, len(gs.Quests), totalReward)
 
 	level := LevelData{
 		Name: "final",
 		Test: "true",
 		PreCmd: fmt.Sprintf("echo 'Квест завершено! Загальна винагорода: %d балів'", totalReward),
-		Text: fmt.Sprintf(text, len(gs.Quests), totalReward),
+		Text: text,
 	}
 
 	return renderLevel(level)
@@ -443,6 +442,3 @@ func cleanCommand(command string) string {
 	command = strings.ReplaceAll(command, "}", "")
 	return command
 }
-
-// _ - заглушка для невикористаного імпорту (template)
-var _ = template.FuncMap{}
