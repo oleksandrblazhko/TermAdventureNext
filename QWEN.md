@@ -20,8 +20,15 @@ TermAdventure/
 │   ├── levels.go        # Типи Challenge/Level, парсинг YAML, хешування ID рівнів, управління конфігурацією
 │   ├── utils.go         # Утиліти: друк у термінал, форматування markdown, AES шифрування, виконання shell-команд
 │   └── template.go      # Генерація .ta файлів з Go шаблонів + YAML змінних
+├── tw2ta/               # Конвертер TextWorld → TermAdventure
+│   ├── main.go              # CLI утиліта конвертації
+│   ├── parser.go            # Парсинг TextWorld JSON
+│   ├── graph.go             # Побудова графу станів
+│   ├── converter.go         # Генерація .ta файлів
+│   └── mapping_parser.go    # Парсинг TW_BASH_MAPPING.md
 ├── challenger.sh        # Shell-скрипт для запуску сесії челенджу
 ├── ta_bashrc            # Кастомний bashrc для сесій челенджу (промпт, історія, аліаси)
+├── game_state.sh        # Helper для управління станом гри (legacy)
 ├── sample_challenge.ta  # Приклад челенджу з декількома рівнями
 ├── sample_challenge.yaml # Приклад YAML даних для генерації шаблонів
 ├── sample_challenge.tpl # Приклад шаблону
@@ -30,6 +37,9 @@ TermAdventure/
 ├── docs/                # Документація (Sphinx)
 │   ├── Makefile
 │   └── source/conf.py
+├── PLAN.md              # План розробки конвертера TextWorld
+├── TW_BASH_MAPPING.md   # Правила мапінгу TextWorld → Bash
+├── TW2TA_GUIDE.md       # Інструкція для tw2ta
 └── README.md
 ```
 
@@ -812,6 +822,183 @@ go test
 - `${TA_BIN=:...}` → `${TA_BIN:-...}` — невірний синтаксис parameter expansion давав `:path` замість `path`
 - Відносні шляхи `CHALLENGE_FILE` → автоматичне перетворення на абсолютні
 
+---
+
+## Конвертер TextWorld → TermAdventure (tw2ta)
+
+### Огляд
+
+Утиліта `tw2ta` конвертує JSON-файли [TextWorld](https://github.com/Microsoft/TextWorld) у формат `.ta` для TermAdventure.
+
+**Підхід:** "1 дія = 1 рівень" — кожна команда TextWorld стає окремим рівнем з реальними bash-командами.
+
+### Принцип роботи
+
+```
+┌─────────────────────┐
+│  simple_game.json   │  (TextWorld JSON)
+│  (2467 рядків)      │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│   parser.go         │  Розбір JSON у структури Go
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│   graph.go          │  Побудова графу станів
+│                     │  - 6 кімнат
+│                     │  - 13 предметів
+│                     │  - 8 кроків квесту
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  mapping_parser.go  │  Читання TW_BASH_MAPPING.md
+│                     │  (правила мапінгу)
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  converter.go       │  Генерація .ta рівнів
+│                     │  Для кожної дії:
+│                     │  - precmd (підготовка)
+│                     │  - test (перевірка)
+│                     │  - postcmd (фіксація)
+│                     │  - player command (bash)
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  simple_game.ta     │  Готовий файл для TermAdventure
+│  (~150 рядків)      │
+└─────────────────────┘
+```
+
+### Структура tw2ta/
+
+```
+tw2ta/
+├── main.go              # CLI утиліта конвертації
+├── parser.go            # Парсинг TextWorld JSON (структури + валідація)
+├── graph.go             # Побудова графу станів (кімнати, предмети, квести)
+├── converter.go         # Генерація .ta файлів з графу
+├── mapping_parser.go    # Парсинг TW_BASH_MAPPING.md
+└── go.mod               # Модуль Go
+```
+
+### Використання
+
+```bash
+# Базова конвертація
+./tw2ta input.json
+
+# З явною назвою вихідного файлу
+./tw2ta input.json output.ta
+
+# З копіюванням game_state.sh (legacy)
+./tw2ta --copy-game-state input.json
+
+# З назвою челенджу
+./tw2ta --challenge "My Quest" input.json
+```
+
+### Правила мапінгу (TW_BASH_MAPPING.md)
+
+Файл `TW_BASH_MAPPING.md` визначає як конвертувати дії TextWorld у bash-команди:
+
+| TextWorld дія | Bash-команда гравця | Перевірка (test) |
+|---------------|---------------------|------------------|
+| `open container` | `rm /tmp/game/<container>/.closed` | `test ! -f ...` |
+| `take item` | `cp /tmp/game/<container>/<item> ~/` | `test -f ~/<item>` |
+| `put item` | `cp ~/<item> /tmp/game/<surface>/` | `test -f /tmp/game/<surface>/<item>` |
+| `unlock door` | `echo "closed" > /tmp/game/door_<name>.state` | `test "$(cat ...)" = "closed"` |
+| `open door` | `echo "open" > /tmp/game/door_<name>.state` | `test "$(cat ...)" = "open"` |
+| `go east/west/...` | `echo "<room>" > ~/.current_room` | `test "$(cat ~/.current_room)" = "<room>"` |
+
+**Важливо:** Якщо змінити `TW_BASH_MAPPING.md`, наступна конвертація автоматично використає нові правила.
+
+### Приклад згенерованого рівня
+
+```yaml
+name: step_01_open_chest_drawer
+test: test ! -f /tmp/game/chest_drawer/.closed
+precmd: |
+  mkdir -p /tmp/game/chest_drawer
+  touch /tmp/game/chest_drawer/.closed
+  echo "Крок 1/8: Відчиніть шухляду"
+next: [step_02_take_old_key]
+postcmd: touch /tmp/game/chest_drawer/.open
+
+## Крок 1/8: Відчиніть контейнер
+
+Ви знаходитесь у кімнаті **спальня**.
+
+Перед вами **шухляда (chest_drawer)** — вона зачинена.
+
+**Виконайте команду:**
+
+```bash
+rm /tmp/game/chest_drawer/.closed
+```
+
+*Оригінальна команда TextWorld:* `open {c_0}`*
+```
+
+### Структура файлів гри
+
+```
+/tmp/game/                          # Робоча директорія гри
+├── chest_drawer/                   # Контейнер
+│   ├── .closed                     # Прапорець стану
+│   ├── .open                       # Прапорець стану
+│   └── old_key                     # Предмет всередині
+├── stove/                          # Поверхня
+│   └── apple                       # Предмет на поверхні
+├── door_wooden_door.state          # Стан дверей: locked/closed/open
+├── door_wooden_door.unlocked       # Прапорець що відімкнено
+├── doors.log                       # Лог дій з дверима
+├── movement.log                    # Лог переміщень
+├── inventory.log                   # Лог інвентарю
+└── win_condition                   # Файл-прапорець перемоги
+```
+
+### Генерація з TextWorld
+
+```bash
+# Генерація простої гри
+tw-make tw-simple --seed 42 --output game.z8 --json game.json
+
+# Генерація з іншим seed (різна гра!)
+tw-make tw-simple --seed 100 --output game2.z8 --json game2.json
+
+# Конвертація
+./tw2ta game.json
+./tw2ta game2.json
+```
+
+### Підтримувані шаблони TextWorld
+
+| Шаблон | Опис | Статус |
+|--------|------|--------|
+| `tw-simple` | Простий будинок | ✅ Повна підтримка |
+| `tw-cooking` | Кулінарний квест | 🔲 Планується |
+| `tw-treasure_hunter` | Пошук скарбів | 🔲 Планується |
+| `tw-commonsense` | Квести на здоровий глузд | 🔲 Планується |
+
+### Відмінності від game_state.sh
+
+**Старий підхід (legacy):**
+- Використовував `game_state.sh` для управління станом
+- Стан зберігався у `/tmp/termadventure_*/`
+
+**Новий підхід (поточний):**
+- Прямі bash-команди без допоміжних скриптів
+- Стан у файлах `/tmp/game/`
+- Гравець виконує реальні команди: `cp`, `rm`, `echo`, `mkdir`
+
+---
 
 # Інструкція з використання
 файл - Guide.md

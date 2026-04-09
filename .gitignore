@@ -31,6 +31,10 @@ converted_challenges/
 # TextWorld generated files
 *.z8
 *.ulx
+*.json  # TextWorld JSON (крім prompts/)
+!prompts/*.json
 
-# Game state helper (це частина проекту!)
-# game_state.sh - НЕ ігнорувати!
+# Game state (temp files)
+/tmp/termadventure_*/
+/tmp/game/
+~/.current_room

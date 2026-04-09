@@ -27,9 +27,10 @@ ls -la tw2ta/
 # ├── parser.go
 # ├── graph.go
 # ├── converter.go
-# └── go.mod (якщо є)
+# ├── mapping_parser.go
+# └── go.mod
 
-ls -la game_state.sh
+ls -la TW_BASH_MAPPING.md
 ```
 
 ### Крок 3: Зібрати утиліту tw2ta
@@ -68,25 +69,20 @@ ls -la prompts/simple_game.json
 # З явною назвою челенджу
 ./tw2ta --challenge "My First Quest" test_game.json my_quest.ta
 
-# З копіюванням game_state.sh
-./tw2ta --copy-game-state test_game.json
-
 # Переглянути результат
 head -n 50 test_game.ta
 ```
 
+**Важливо:** `tw2ta` автоматично читає `TW_BASH_MAPPING.md` для генерації bash-команд. Якщо змінити цей файл — наступна конвертація використає нові правила!
+
 ### Крок 6: Підготувати до запуску
 
 ```bash
-# Зроби game_state.sh виконуваним
-chmod +x game_state.sh
+# game_state.sh більше не потрібен!
+# Конвертований .ta використовує прямі bash-команди
 
-# Перемісти його до директорії з бінарником (якщо потрібно)
-cp game_state.sh /usr/local/bin/
-# АБО залиш у поточній директорії (шлях має бути в PATH)
-
-# Ініціалізуй стан (опціонально, зазвичай робиться автоматично)
-./game_state.sh init test_game
+# Просто переконайся що /tmp/game існує
+mkdir -p /tmp/game
 ```
 
 ### Крок 7: Збери TermAdventure (якщо ще не зібрано)
@@ -176,77 +172,94 @@ precmd: echo 'Квест завершено!'
 # 🎉 Вітаємо! Квест пройдено!
 ```
 
-## Як працює game_state.sh
+## Як працюють bash-команди у конвертованих квестах
 
-`game_state.sh` — це менеджер стану гри. Він зберігає інформацію про:
+Кожен рівень у конвертованому `.ta` файлі використовує **прямі bash-команди** замість `game_state.sh`:
 
-- Стан контейнерів (відчинені/зачинені)
-- Стан дверей (замкнені/відімкнені/відчинені)
-- Інвентар гравця
-- Поточну кімнату гравця
-- Умову перемоги
+### Структура файлів гри
 
-### Команди game_state.sh
+```
+/tmp/game/                          # Робоча директорія гри
+├── chest_drawer/                   # Контейнер
+│   ├── .closed                     # Прапорець стану
+│   ├── .open                       # Прапорець стану
+│   └── old_key                     # Предмет всередині
+├── stove/                          # Поверхня
+│   └── apple                       # Предмет на поверхні
+├── door_wooden_door.state          # Стан дверей: locked/closed/open
+├── door_wooden_door.unlocked       # Прапорець що відімкнено
+├── doors.log                       # Лог дій з дверима
+├── movement.log                    # Лог переміщень
+├── inventory.log                   # Лог інвентарю
+└── win_condition                   # Файл-прапорець перемоги
 
-```bash
-# Ініціалізація
-./game_state.sh init <challenge_name>
-
-# Перевірка умов (використовується у test:)
-./game_state.sh check open c_0        # Контейнер відчинений?
-./game_state.sh check unlocked d_0    # Двері відімкнені?
-./game_state.sh check win             # Квест пройдено?
-./game_state.sh has k_0               # Ключ в інвентарі?
-./game_state.sh at r_0                # Гравець у кімнаті r_0?
-
-# Оновлення стану
-./game_state.sh update open c_0       # Відчинити контейнер
-./game_state.sh update unlocked d_0   # Відімкнути двері
-
-# Перегляд стану (для дебагу)
-./game_state.sh state
-
-# Скинути стан
-./game_state.sh reset
+~/.current_room                     # Поточна кімната гравця
+~/old_key                           # Предмет в інвентарі гравця
 ```
 
-### Де зберігається стан
+### Приклади команд для гравця
+
+| Дія TextWorld | Що робить гравець | Перевірка (test) |
+|---------------|-------------------|------------------|
+| `open chest_drawer` | `rm /tmp/game/chest_drawer/.closed` | `test ! -f ...` |
+| `take old_key` | `cp /tmp/game/chest_drawer/old_key ~/` | `test -f ~/old_key` |
+| `unlock wooden_door` | `echo "closed" > /tmp/game/door_wooden_door.state` | `test "$(cat ...)" = "closed"` |
+| `open wooden_door` | `echo "open" > /tmp/game/door_wooden_door.state` | `test "$(cat ...)" = "open"` |
+| `go east` | `echo "kitchen" > ~/.current_room` | `test "$(cat ~/.current_room)" = "kitchen"` |
+| `put apple on stove` | `cp ~/apple /tmp/game/stove/` | `test -f /tmp/game/stove/apple` |
+
+### Повний приклад рівня
+
+```yaml
+name: step_01_open_chest_drawer
+test: test ! -f /tmp/game/chest_drawer/.closed
+precmd: |
+  mkdir -p /tmp/game/chest_drawer
+  touch /tmp/game/chest_drawer/.closed
+  echo "Крок 1/8: Відчиніть шухляду"
+next: [step_02_take_old_key]
+postcmd: touch /tmp/game/chest_drawer/.open
+
+## Крок 1/8: Відчиніть контейнер
+
+Ви у кімнаті **спальня**. Перед вами **шухляда (chest_drawer)** — вона зачинена.
+
+**Виконайте команду:**
 
 ```bash
-/tmp/termadventure_<challenge_name>/
-├── game_state.json          # Основний файл стану
-├── container_c_0            # Стан контейнера (open/closed)
-├── container_contents_c_0   # Вміст контейнера
-├── door_d_0                 # Стан дверей (locked/unlocked/open/closed)
-├── inventory                # Предмети в інвентарі
-├── player_room              # Поточна кімната гравця
-└── won                      # Флаг перемоги (true/false)
+rm /tmp/game/chest_drawer/.closed
 ```
+
+*Оригінальна команда TextWorld:* `open {c_0}`*
+```
+
+### Правила мапінгу (TW_BASH_MAPPING.md)
+
+Файл `TW_BASH_MAPPING.md` визначає всі правила конвертації. Якщо його змінити:
+
+```bash
+# 1. Відредагуй правила
+vim TW_BASH_MAPPING.md
+
+# 2. Перезапусти конвертацію
+./tw2ta test_game.json
+
+# 3. Результат автоматично оновиться!
+cat test_game.ta
+```
+
+**Не треба чіпати код `converter.go`** — просто зміни markdown!
 
 ## Вирішення проблем
-
-### Помилка: "game_state.sh: command not found"
-
-```bash
-# Варіант 1: Додати до PATH
-export PATH="$HOME/TermAdventureNext:$PATH"
-
-# Варіант 2: Використовувати повний шлях
-test: ./game_state.sh check open c_0
-
-# Варіант 3: Скопіювати до /usr/local/bin
-sudo cp game_state.sh /usr/local/bin/
-sudo chmod +x /usr/local/bin/game_state.sh
-```
 
 ### Помилка: "стан гри не ініціалізовано"
 
 ```bash
-# Ініціалізуй вручну
-./game_state.sh init <challenge_name>
+# Створи директорію гри
+mkdir -p /tmp/game
 
-# Або скинь і почни знову
-./game_state.sh reset
+# Скинь стан
+rm -rf /tmp/game/*
 ```
 
 ### Помилка компіляції Go
