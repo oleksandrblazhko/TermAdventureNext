@@ -3,7 +3,10 @@
     "allow": [
       "Bash(python *)",
       "Bash(tw-make *)",
-      "Bash(mkdir *)"
+      "Bash(mkdir *)",
+      "Bash(git add *)",
+      "Bash(git restore *)",
+      "Bash(git commit *)"
     ]
   },
   "$version": 3
