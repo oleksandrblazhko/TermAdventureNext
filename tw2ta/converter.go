@@ -41,9 +41,9 @@ func ConvertToTA(gs *GameState, challengeName string) (string, error) {
 			continue
 		}
 
-		for aIndex, action := range quest.Actions {
+		for _, action := range quest.Actions {
 			actionCounter++
-			
+
 			level := generateActionLevel(gs, action, actionCounter, totalActions, qIndex)
 			ta.WriteString(level)
 			
@@ -64,7 +64,6 @@ func ConvertToTA(gs *GameState, challengeName string) (string, error) {
 
 // generateIntroLevel - створює вступний рівень
 func generateIntroLevel(gs *GameState, challengeName string) string {
-	startRoom := gs.Rooms[gs.PlayerRoom]
 	startRoomDesc := gs.GetRoomDescription(gs.PlayerRoom)
 
 	text := fmt.Sprintf(`# Ласкаво просимо до TextWorld!
@@ -335,7 +334,7 @@ func getActionInstructions(gs *GameState, action ActionStep) string {
 
 	// Опис кімнати
 	if action.SourceRoom != "" {
-		if room, ok := gs.Rooms[action.SourceRoom]; ok {
+		if _, ok := gs.Rooms[action.SourceRoom]; ok {
 			text.WriteString(fmt.Sprintf("Ви знаходитесь у кімнаті **%s**.\n\n", gs.GetEntityName(action.SourceRoom)))
 			
 			// Додаємо контекст про предмети
