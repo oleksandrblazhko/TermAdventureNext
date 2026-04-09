@@ -4,23 +4,15 @@ import (
 	"fmt"
 	"strings"
 	"bytes"
+	"os"
+	"path/filepath"
 )
-
-// LevelData - дані для шаблону рівня
-type LevelData struct {
-	Name        string
-	Test        string
-	PreCmd      string
-	PostCmd     string
-	PostPrintCmd string
-	NextLevels  []string
-	BackgroundJobs bool
-	TimeLimit   int
-	Text        string
-}
 
 // ConvertToTA - конвертує GameState у формат .ta
 func ConvertToTA(gs *GameState, challengeName string) (string, error) {
+	// Шукаємо та парсимо TW_BASH_MAPPING.md
+	mapping := loadMappingFile()
+	
 	var ta strings.Builder
 
 	// 1. Вступний рівень
@@ -35,7 +27,7 @@ func ConvertToTA(gs *GameState, challengeName string) (string, error) {
 	}
 
 	actionCounter := 0
-	for qIndex, quest := range gs.Quests {
+	for _, quest := range gs.Quests {
 		// Пропускаємо квести без дій
 		if len(quest.Actions) == 0 {
 			continue
@@ -43,8 +35,8 @@ func ConvertToTA(gs *GameState, challengeName string) (string, error) {
 
 		for _, action := range quest.Actions {
 			actionCounter++
-
-			level := generateActionLevel(gs, action, actionCounter, totalActions, qIndex)
+			
+			level := generateActionLevel(gs, action, actionCounter, totalActions, mapping)
 			ta.WriteString(level)
 			
 			// Додаємо роздільник між рівнями (крім останнього)
@@ -60,6 +52,31 @@ func ConvertToTA(gs *GameState, challengeName string) (string, error) {
 	ta.WriteString(finalLevel)
 
 	return ta.String(), nil
+}
+
+// loadMappingFile - завантажує TW_BASH_MAPPING.md
+func loadMappingFile() *BashMapping {
+	// Шукаємо файл у різних місцях
+	searchPaths := []string{
+		"TW_BASH_MAPPING.md",
+		"../TW_BASH_MAPPING.md",
+		filepath.Join(os.Getenv("HOME"), "TermAdventureNext/TW_BASH_MAPPING.md"),
+	}
+	
+	for _, path := range searchPaths {
+		if _, err := os.Stat(path); err == nil {
+			mapping, err := LoadMappingFromFile(path)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "⚠️  Помилка читання %s: %v\n", path, err)
+				continue
+			}
+			fmt.Fprintf(os.Stderr, "✅ Завантажено мапінг: %s (%d дій)\n", path, len(mapping.Actions))
+			return mapping
+		}
+	}
+	
+	fmt.Fprintf(os.Stderr, "⚠️  TW_BASH_MAPPING.md не знайдено, використовуємо вбудовані правила\n")
+	return nil
 }
 
 // generateIntroLevel - створює вступний рівень
@@ -92,14 +109,11 @@ func generateIntroLevel(gs *GameState, challengeName string) string {
 }
 
 // generateActionLevel - створює рівень для однієї дії
-func generateActionLevel(gs *GameState, action ActionStep, currentStep int, totalSteps int, questIndex int) string {
+func generateActionLevel(gs *GameState, action ActionStep, currentStep int, totalSteps int, mapping *BashMapping) string {
 	levelName := fmt.Sprintf("step_%02d", currentStep)
 	
-	// Визначаємо test команду
-	testCmd := generateTestCommand(gs, action)
-	
-	// Визначаємо precmd
-	preCmd := fmt.Sprintf("echo 'Крок %d/%d: %s'", currentStep, totalSteps, getActionDescription(gs, action))
+	// Визначаємо test, precmd, postcmd команди з мапінгу
+	testCmd, preCmd, postCmd, playerCommand := generateCommandsFromMapping(gs, action, mapping)
 	
 	// Визначаємо наступний рівень
 	var nextLevels []string
@@ -110,17 +124,188 @@ func generateActionLevel(gs *GameState, action ActionStep, currentStep int, tota
 	}
 
 	// Генеруємо текст рівня
-	text := generateLevelText(gs, action, currentStep, totalSteps)
+	text := generateLevelText(gs, action, currentStep, totalSteps, playerCommand)
 
 	level := LevelData{
 		Name:       levelName,
 		Test:       testCmd,
 		PreCmd:     preCmd,
+		PostCmd:    postCmd,
 		NextLevels: nextLevels,
 		Text:       text,
 	}
 
 	return renderLevel(level)
+}
+
+// generateCommandsFromMapping - генерує команди з мапінгу
+func generateCommandsFromMapping(gs *GameState, action ActionStep, mapping *BashMapping) (test, precmd, postcmd, playerCmd string) {
+	// Отримуємо правила з мапінгу
+	var actionMapping *ActionMapping
+	if mapping != nil {
+		actionMapping, _ = mapping.GetAction(action.ActionName)
+	}
+
+	// Якщо мапінг знайдено, використовуємо його
+	if actionMapping != nil {
+		// Збираємо змінні для шаблону
+		vars := extractTemplateVars(gs, action)
+		
+		// Застосовуємо шаблон
+		precmd, playerCmd, test, postcmd = actionMapping.ApplyTemplate(vars)
+		return
+	}
+
+	// Fallback: вбудовані правила
+	return generateFallbackCommands(gs, action)
+}
+
+// extractTemplateVars - витягує змінні для шаблону
+func extractTemplateVars(gs *GameState, action ActionStep) map[string]string {
+	vars := make(map[string]string)
+	
+	// Витягуємо ID з command_template
+	cmd := action.Command
+	
+	// Контейнери
+	if idx := strings.Index(cmd, "{c_"); idx != -1 {
+		end := strings.Index(cmd[idx:], "}")
+		if end != -1 {
+			containerID := cmd[idx+1 : idx+end]
+			vars["container"] = containerID
+			vars["container_name"] = gs.GetEntityName(containerID)
+		}
+	}
+	
+	// Предмети
+	if idx := strings.Index(cmd, "{f_"); idx != -1 {
+		end := strings.Index(cmd[idx:], "}")
+		if end != -1 {
+			itemID := cmd[idx+1 : idx+end]
+			vars["item"] = itemID
+			vars["item_name"] = gs.GetEntityName(itemID)
+		}
+	} else if idx := strings.Index(cmd, "{k_"); idx != -1 {
+		end := strings.Index(cmd[idx:], "}")
+		if end != -1 {
+			itemID := cmd[idx+1 : idx+end]
+			vars["item"] = itemID
+			vars["item_name"] = gs.GetEntityName(itemID)
+		}
+	} else if idx := strings.Index(cmd, "{o_"); idx != -1 {
+		end := strings.Index(cmd[idx:], "}")
+		if end != -1 {
+			itemID := cmd[idx+1 : idx+end]
+			vars["item"] = itemID
+			vars["item_name"] = gs.GetEntityName(itemID)
+		}
+	}
+	
+	// Двері
+	if idx := strings.Index(cmd, "{d_"); idx != -1 {
+		end := strings.Index(cmd[idx:], "}")
+		if end != -1 {
+			doorID := cmd[idx+1 : idx+end]
+			vars["door"] = doorID
+			vars["door_name"] = gs.GetEntityName(doorID)
+		}
+	}
+	
+	// Поверхні
+	if idx := strings.Index(cmd, "{s_"); idx != -1 {
+		end := strings.Index(cmd[idx:], "}")
+		if end != -1 {
+			supporterID := cmd[idx+1 : idx+end]
+			vars["surface"] = supporterID
+			vars["surface_name"] = gs.GetEntityName(supporterID)
+		}
+	}
+	
+	// Ключі (для unlock)
+	if strings.Contains(cmd, "with {") {
+		if idx := strings.Index(cmd, "with {"); idx != -1 {
+			start := idx + 6
+			end := strings.Index(cmd[start:], "}")
+			if end != -1 {
+				keyID := cmd[start : start+end]
+				vars["key"] = keyID
+				vars["key_name"] = gs.GetEntityName(keyID)
+			}
+		}
+	}
+	
+	// Кімнати (для руху)
+	if strings.HasPrefix(action.ActionName, "go/") {
+		direction := strings.TrimPrefix(action.ActionName, "go/")
+		vars["direction"] = direction
+		if action.TargetRoom != "" {
+			vars["room"] = action.TargetRoom
+			vars["room_name"] = gs.GetEntityName(action.TargetRoom)
+		}
+	}
+	
+	return vars
+}
+
+// generateFallbackCommands - вбудовані правила якщо мапінг не знайдено
+func generateFallbackCommands(gs *GameState, action ActionStep) (test, precmd, postcmd, playerCmd string) {
+	actionName := action.ActionName
+	
+	switch {
+	case actionName == "open/c":
+		containerID := extractEntityID(action.Command)
+		test = fmt.Sprintf("test ! -f /tmp/game/%s/.closed", containerID)
+		precmd = fmt.Sprintf("mkdir -p /tmp/game/%s && touch /tmp/game/%s/.closed", containerID, containerID)
+		playerCmd = fmt.Sprintf("rm /tmp/game/%s/.closed", containerID)
+		postcmd = fmt.Sprintf("touch /tmp/game/%s/.open", containerID)
+		
+	case actionName == "take/c":
+		itemID := extractItemID(action.Command)
+		containerID := extractContainerFromCommand(action.Command)
+		test = fmt.Sprintf("test -f ~/%s", itemID)
+		precmd = fmt.Sprintf("mkdir -p /tmp/game/%s && touch /tmp/game/%s/%s", containerID, containerID, itemID)
+		playerCmd = fmt.Sprintf("cp /tmp/game/%s/%s ~/", containerID, itemID)
+		postcmd = fmt.Sprintf("echo '%s taken' >> /tmp/game/inventory.log", itemID)
+		
+	case actionName == "put":
+		itemID := extractItemID(action.Command)
+		supporterID := extractSupporterID(action.Command)
+		test = fmt.Sprintf("test -f /tmp/game/%s/%s", supporterID, itemID)
+		precmd = fmt.Sprintf("mkdir -p /tmp/game/%s", supporterID)
+		playerCmd = fmt.Sprintf("cp ~/%s /tmp/game/%s/", itemID, supporterID)
+		postcmd = fmt.Sprintf("rm ~/%s", itemID)
+		
+	case actionName == "unlock/d":
+		doorID := extractEntityID(action.Command)
+		test = fmt.Sprintf("test \"$(cat /tmp/game/door_%s.state)\" = \"closed\"", doorID)
+		precmd = fmt.Sprintf("echo 'locked' > /tmp/game/door_%s.state", doorID)
+		playerCmd = fmt.Sprintf("echo 'closed' > /tmp/game/door_%s.state", doorID)
+		postcmd = fmt.Sprintf("touch /tmp/game/door_%s.unlocked", doorID)
+		
+	case actionName == "open/d":
+		doorID := extractEntityID(action.Command)
+		test = fmt.Sprintf("test \"$(cat /tmp/game/door_%s.state)\" = \"open\"", doorID)
+		precmd = fmt.Sprintf("echo 'closed' > /tmp/game/door_%s.state", doorID)
+		playerCmd = fmt.Sprintf("echo 'open' > /tmp/game/door_%s.state", doorID)
+		postcmd = fmt.Sprintf("echo 'door %s open' >> /tmp/game/doors.log", doorID)
+		
+	case strings.HasPrefix(actionName, "go/"):
+		if action.TargetRoom != "" {
+			test = fmt.Sprintf("test \"$(cat ~/.current_room)\" = \"%s\"", action.TargetRoom)
+			precmd = "mkdir -p /tmp/rooms"
+			playerCmd = fmt.Sprintf("echo '%s' > ~/.current_room", action.TargetRoom)
+			postcmd = fmt.Sprintf("echo 'Moved to %s at $(date)' >> /tmp/game/movement.log", action.TargetRoom)
+		} else {
+			test = "true"
+			playerCmd = "echo 'Перейдіть у наступну кімнату'"
+		}
+		
+	default:
+		test = "true"
+		playerCmd = "# Виконайте дію: " + action.Command
+	}
+	
+	return
 }
 
 // generateFinalLevel - створює фінальний рівень
@@ -188,84 +373,9 @@ func renderLevel(level LevelData) string {
 	return buf.String()
 }
 
-// generateTestCommand - генерує shell-команду для перевірки кроку
-func generateTestCommand(gs *GameState, action ActionStep) string {
-	actionName := action.ActionName
-	
-	// Мапінг типів дій у test-команди
-	switch {
-	case actionName == "open/c":
-		// Відчинити контейнер
-		containerID := extractEntityID(action.Command)
-		return fmt.Sprintf("game_state.sh check open %s", containerID)
-		
-	case actionName == "close/c":
-		containerID := extractEntityID(action.Command)
-		return fmt.Sprintf("game_state.sh check closed %s", containerID)
-		
-	case actionName == "open/d":
-		// Відчинити двері
-		doorID := extractEntityID(action.Command)
-		return fmt.Sprintf("game_state.sh check open %s", doorID)
-		
-	case actionName == "close/d":
-		doorID := extractEntityID(action.Command)
-		return fmt.Sprintf("game_state.sh check closed %s", doorID)
-		
-	case actionName == "unlock/d":
-		// Відімкнути двері
-		doorID := extractEntityID(action.Command)
-		return fmt.Sprintf("game_state.sh check unlocked %s", doorID)
-		
-	case actionName == "lock/d":
-		doorID := extractEntityID(action.Command)
-		return fmt.Sprintf("game_state.sh check locked %s", doorID)
-		
-	case actionName == "take/c":
-		// Взяти з контейнера
-		itemID := extractItemID(action.Command)
-		return fmt.Sprintf("game_state.sh has %s", itemID)
-		
-	case actionName == "take/s":
-		// Взяти з поверхні
-		itemID := extractItemID(action.Command)
-		return fmt.Sprintf("game_state.sh has %s", itemID)
-		
-	case actionName == "insert":
-		// Покласти в контейнер
-		itemID := extractItemID(action.Command)
-		return fmt.Sprintf("game_state.sh check in %s", itemID)
-		
-	case actionName == "put":
-		// Покласти на поверхню
-		itemID := extractItemID(action.Command)
-		supporterID := extractSupporterID(action.Command)
-		return fmt.Sprintf("game_state.sh check on %s %s", itemID, supporterID)
-		
-	case strings.HasPrefix(actionName, "go/"):
-		// Рух - перевірка поточної кімнати
-		if action.SourceRoom != "" {
-			return fmt.Sprintf("game_state.sh at %s", action.SourceRoom)
-		}
-		return "true"
-		
-	case actionName == "trigger":
-		// Автоматична подія (перевірка умови перемоги)
-		if len(action.Postconditions) > 0 {
-			lastPost := action.Postconditions[len(action.Postconditions)-1]
-			if lastPost.Name == "event" {
-				return "game_state.sh check win"
-			}
-		}
-		return "true"
-		
-	default:
-		return "true"
-	}
-}
 
 // generateLevelText - генерує Markdown текст для рівня
-func generateLevelText(gs *GameState, action ActionStep, currentStep int, totalSteps int) string {
+func generateLevelText(gs *GameState, action ActionStep, currentStep int, totalSteps int, playerCommand string) string {
 	var text strings.Builder
 
 	// Заголовок кроку
@@ -274,13 +384,19 @@ func generateLevelText(gs *GameState, action ActionStep, currentStep int, totalS
 	// Опис дії
 	text.WriteString(getActionInstructions(gs, action))
 
-	// Команда
-	if action.Command != "" {
-		text.WriteString(fmt.Sprintf("\n**Команда:** `%s`\n", cleanCommand(action.Command)))
+	// Команда для гравця
+	if playerCommand != "" && !strings.HasPrefix(playerCommand, "#") {
+		text.WriteString("\n**Виконайте команду:**\n")
+		text.WriteString(fmt.Sprintf("\n```bash\n%s\n```\n", playerCommand))
+	} else if strings.HasPrefix(playerCommand, "#") {
+		// Коментар як команда
+		text.WriteString(fmt.Sprintf("\n%s\n", strings.TrimPrefix(playerCommand, "# ")))
 	}
 
-	// Підказка якщо є fail_conditions
-	// (буде додано пізніше)
+	// Підказка щодо перевірки
+	if action.Command != "" {
+		text.WriteString(fmt.Sprintf("\n*Оригінальна команда TextWorld:* `%s`*\n", cleanCommand(action.Command)))
+	}
 
 	return text.String()
 }
