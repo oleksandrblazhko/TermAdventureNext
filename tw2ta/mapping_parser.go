@@ -51,10 +51,7 @@ func ParseMarkdownMapping(content string) (*BashMapping, error) {
 	// 1. Знаходимо секції дій (### `action_name`)
 	actionSectionRegex := regexp.MustCompile(`^###\s+` + "`([^`]+)`" + `\s*—\s*(.+)$`)
 	
-	// 2. Знаходимо таблиці
-	tableRegex := regexp.MustCompile(`\|([^|\n]+)\|([^|\n]+)\|([^|\n]+)?\|`)
-	
-	// 3. Знаходимо коди в блоках
+	// 2. Знаходимо коди в блоках
 	codeBlockRegex := regexp.MustCompile("```bash\\n([\\s\\S]*?)```")
 
 	// Розділяємо контент на секції

@@ -8,6 +8,19 @@ import (
 	"path/filepath"
 )
 
+// LevelData - дані для шаблону рівня
+type LevelData struct {
+	Name        string
+	Test        string
+	PreCmd      string
+	PostCmd     string
+	PostPrintCmd string
+	NextLevels  []string
+	BackgroundJobs bool
+	TimeLimit   int
+	Text        string
+}
+
 // ConvertToTA - конвертує GameState у формат .ta
 func ConvertToTA(gs *GameState, challengeName string) (string, error) {
 	// Шукаємо та парсимо TW_BASH_MAPPING.md
