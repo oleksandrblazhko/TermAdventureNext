@@ -73,10 +73,34 @@ type Action struct {
 	ReverseCommandTpl string      `json:"reverse_command_template"`
 }
 
-// EntityInfoPair - пара ID + інформація про сутність
+// EntityInfoPair - пара [ID, EntityInfo] у форматі масиву
 type EntityInfoPair struct {
-	ID   string     `json:"id"`
-	Info EntityInfo `json:"info"`
+	ID   string
+	Info EntityInfo
+}
+
+// UnmarshalJSON - парсинг формату [["id", {...}], ...]
+func (eip *EntityInfoPair) UnmarshalJSON(data []byte) error {
+	var raw []json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	
+	if len(raw) != 2 {
+		return fmt.Errorf("очікувався масив з 2 елементів, отримано %d", len(raw))
+	}
+	
+	// Перший елемент - ID (рядок)
+	if err := json.Unmarshal(raw[0], &eip.ID); err != nil {
+		return fmt.Errorf("помилка парсингу ID: %w", err)
+	}
+	
+	// Другий елемент - EntityInfo (об'єкт)
+	if err := json.Unmarshal(raw[1], &eip.Info); err != nil {
+		return fmt.Errorf("помилка парсингу Info: %w", err)
+	}
+	
+	return nil
 }
 
 // EntityInfo - інформація про сутність
