@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python *)"
+      "Bash(python *)",
+      "Bash(tw-make *)",
+      "Bash(mkdir *)"
     ]
   },
   "$version": 3
