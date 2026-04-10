@@ -1,11 +1,18 @@
-# Граф переходів гри TextWorld (TextWorld Game Transition Graph)
-
-## Огляд гри (Game Overview)
-
-**джерело (Source):** `simple_game.json` (згенеровано командою `tw-make tw-simple --goal brief --seed 5`)
+# Огляд гри (Game Overview) типу tw_simple
 
 **тема (Theme):** Будинок (House)
 **Квести (Quests):** 2 (1 основний + 1 умова поразки (fail condition))
+
+### Приклад команди генерації опису гри
+```bash
+tw-make tw-simple --goal brief --seed 5 --output simple_game.z8 --rewards sparse
+```
+**Параметри:**
+- `tw-simple` — тип шаблону гри;
+- `--goal brief` — стиль опису мети квесту;
+- `--seed 5` — випадкове зерно для процедурної генерації;
+- `--output simple_game.z8` — вихідний файл гри (формат Z-machine);
+- `--rewards sparse` — тип системи винагород.
 
 ---
 

@@ -81,8 +81,8 @@ head -n 50 test_game.ta
 # game_state.sh більше не потрібен!
 # Конвертований .ta використовує прямі bash-команди
 
-# Просто переконайся що /tmp/game існує
-mkdir -p /tmp/game
+# Просто переконайся що $HOME/.tw2ta_game існує
+mkdir -p $HOME/.tw2ta_game
 ```
 
 ### Крок 7: Збери TermAdventure (якщо ще не зібрано)
@@ -179,7 +179,7 @@ precmd: echo 'Квест завершено!'
 ### Структура файлів гри
 
 ```
-/tmp/game/                          # Робоча директорія гри
+$HOME/.tw2ta_game/                    # Робоча директорія гри (унікальна для кожного користувача)
 ├── chest_drawer/                   # Контейнер
 │   ├── .closed                     # Прапорець стану
 │   ├── .open                       # Прапорець стану
@@ -191,9 +191,10 @@ precmd: echo 'Квест завершено!'
 ├── doors.log                       # Лог дій з дверима
 ├── movement.log                    # Лог переміщень
 ├── inventory.log                   # Лог інвентарю
+├── current_room                    # Поточна кімната гравця
 └── win_condition                   # Файл-прапорець перемоги
 
-~/.current_room                     # Поточна кімната гравця
+~/.current_room                     # Поточна кімната гравця (legacy)
 ~/old_key                           # Предмет в інвентарі гравця
 ```
 
@@ -201,24 +202,24 @@ precmd: echo 'Квест завершено!'
 
 | Дія TextWorld | Що робить гравець | Перевірка (test) |
 |---------------|-------------------|------------------|
-| `open chest_drawer` | `rm /tmp/game/chest_drawer/.closed` | `test ! -f ...` |
-| `take old_key` | `cp /tmp/game/chest_drawer/old_key ~/` | `test -f ~/old_key` |
-| `unlock wooden_door` | `echo "closed" > /tmp/game/door_wooden_door.state` | `test "$(cat ...)" = "closed"` |
-| `open wooden_door` | `echo "open" > /tmp/game/door_wooden_door.state` | `test "$(cat ...)" = "open"` |
-| `go east` | `echo "kitchen" > ~/.current_room` | `test "$(cat ~/.current_room)" = "kitchen"` |
-| `put apple on stove` | `cp ~/apple /tmp/game/stove/` | `test -f /tmp/game/stove/apple` |
+| `open chest_drawer` | `rm $HOME/.tw2ta_game/chest_drawer/.closed` | `test ! -f ...` |
+| `take old_key` | `cp $HOME/.tw2ta_game/chest_drawer/old_key ~/` | `test -f ~/old_key` |
+| `unlock wooden_door` | `echo "closed" > $HOME/.tw2ta_game/door_wooden_door.state` | `test "$(cat ...)" = "closed"` |
+| `open wooden_door` | `echo "open" > $HOME/.tw2ta_game/door_wooden_door.state` | `test "$(cat ...)" = "open"` |
+| `go east` | `echo "kitchen" > $HOME/.tw2ta_game/current_room` | `test "$(cat $HOME/.tw2ta_game/current_room)" = "kitchen"` |
+| `put apple on stove` | `cp ~/apple $HOME/.tw2ta_game/stove/` | `test -f $HOME/.tw2ta_game/stove/apple` |
 
 ### Повний приклад рівня
 
 ```yaml
 name: step_01_open_chest_drawer
-test: test ! -f /tmp/game/chest_drawer/.closed
+test: test ! -f $HOME/.tw2ta_game/chest_drawer/.closed
 precmd: |
-  mkdir -p /tmp/game/chest_drawer
-  touch /tmp/game/chest_drawer/.closed
+  mkdir -p $HOME/.tw2ta_game/chest_drawer
+  touch $HOME/.tw2ta_game/chest_drawer/.closed
   echo "Крок 1/8: Відчиніть шухляду"
 next: [step_02_take_old_key]
-postcmd: touch /tmp/game/chest_drawer/.open
+postcmd: touch $HOME/.tw2ta_game/chest_drawer/.open
 
 ## Крок 1/8: Відчиніть контейнер
 
@@ -227,7 +228,7 @@ postcmd: touch /tmp/game/chest_drawer/.open
 **Виконайте команду:**
 
 ```bash
-rm /tmp/game/chest_drawer/.closed
+rm $HOME/.tw2ta_game/chest_drawer/.closed
 ```
 
 *Оригінальна команда TextWorld:* `open {c_0}`*
@@ -256,10 +257,10 @@ cat test_game.ta
 
 ```bash
 # Створи директорію гри
-mkdir -p /tmp/game
+mkdir -p $HOME/.tw2ta_game
 
 # Скинь стан
-rm -rf /tmp/game/*
+rm -rf $HOME/.tw2ta_game/*
 ```
 
 ### Помилка компіляції Go
