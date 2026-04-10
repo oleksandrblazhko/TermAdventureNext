@@ -69,13 +69,13 @@ func ConvertToTA(gs *GameState, challengeName string) (string, error) {
 	return ta.String(), nil
 }
 
-// loadMappingFile - завантажує lab1_mapping.yaml
+// loadMappingFile - завантажує tw-simple_mapping.yaml
 func loadMappingFile() *BashMapping {
 	// Шукаємо YAML-файл у різних місцях
 	searchPaths := []string{
-		"lab1_mapping.yaml",
-		"../lab1_mapping.yaml",
-		filepath.Join(os.Getenv("HOME"), "TermAdventureNext/tw2ta/lab1_mapping.yaml"),
+		"tw-simple_mapping.yaml",
+		"../tw-simple_mapping.yaml",
+		filepath.Join(os.Getenv("HOME"), "TermAdventureNext/tw2ta/tw-simple_mapping.yaml"),
 	}
 
 	return LoadMappingFromPaths(searchPaths)

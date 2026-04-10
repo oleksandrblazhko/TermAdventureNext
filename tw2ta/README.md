@@ -28,9 +28,9 @@ ls -la tw2ta/
 # ├── graph.go
 # ├── converter.go
 # ├── mapping_parser.go
-# └── go.mod
+# └── tw-simple_mapping.yaml
 
-ls -la TW_BASH_MAPPING.md
+ls -la tw2ta/tw-simple_mapping.yaml
 ```
 
 ### Крок 3: Зібрати утиліту tw2ta
@@ -73,7 +73,7 @@ ls -la prompts/simple_game.json
 head -n 50 test_game.ta
 ```
 
-**Важливо:** `tw2ta` автоматично читає `TW_BASH_MAPPING.md` для генерації bash-команд. Якщо змінити цей файл — наступна конвертація використає нові правила!
+**Важливо:** `tw2ta` автоматично читає `tw-simple_mapping.yaml` для генерації bash-команд. Це структурований YAML-файл з шаблонами дій. Якщо змінити цей файл — наступна конвертація використає нові правила!
 
 ### Крок 6: Підготувати до запуску
 
@@ -135,9 +135,9 @@ export CHALLENGE_FILE=./my_game.ta
 
 Після конвертації `simple_game.json` отримаєш файл з такою структурою:
 
-```
+```yaml
 name: intro
-test: true
+test: "true"
 precmd: echo 'Початок челенджу: simple_game'
 next: [step_01]
 
@@ -147,8 +147,9 @@ next: [step_01]
 --------------------
 
 name: step_01
-test: game_state.sh check open c_0
-precmd: echo 'Крок 1/8: Відчиніть контейнер'
+test: test ! -f $HOME/.tw2ta_game/bedroom/chest_drawer/.closed
+precmd: mkdir -p $HOME/.tw2ta_game/bedroom/chest_drawer && touch $HOME/.tw2ta_game/bedroom/chest_drawer/.closed
+postcmd: touch $HOME/.tw2ta_game/bedroom/chest_drawer/.open
 next: [step_02]
 
 ## Крок 1/8: Відчиніть контейнер
@@ -157,8 +158,8 @@ next: [step_02]
 --------------------
 
 name: step_02
-test: game_state.sh has k_0
-precmd: echo 'Крок 2/8: Візьміть предмет'
+test: test -f ~/old_key
+precmd: mkdir -p $HOME/.tw2ta_game/bedroom/chest_drawer
 next: [step_03]
 
 ...
@@ -166,7 +167,7 @@ next: [step_03]
 --------------------
 
 name: final
-test: true
+test: "true"
 precmd: echo 'Квест завершено!'
 
 # 🎉 Вітаємо! Квест пройдено!
@@ -202,45 +203,42 @@ $HOME/.tw2ta_game/                    # Робоча директорія гри
 
 | Дія TextWorld | Що робить гравець | Перевірка (test) |
 |---------------|-------------------|------------------|
-| `open chest_drawer` | `rm $HOME/.tw2ta_game/chest_drawer/.closed` | `test ! -f ...` |
-| `take old_key` | `cp $HOME/.tw2ta_game/chest_drawer/old_key ~/` | `test -f ~/old_key` |
+| `open chest_drawer` | `mv $HOME/.tw2ta_game/bedroom/chest_drawer/.closed` | `test ! -f .../.closed` |
+| `take old_key` | `mv $HOME/.tw2ta_game/bedroom/chest_drawer/old_key ~/` | `test -f ~/old_key` |
 | `unlock wooden_door` | `echo "closed" > $HOME/.tw2ta_game/door_wooden_door.state` | `test "$(cat ...)" = "closed"` |
 | `open wooden_door` | `echo "open" > $HOME/.tw2ta_game/door_wooden_door.state` | `test "$(cat ...)" = "open"` |
 | `go east` | `echo "kitchen" > $HOME/.tw2ta_game/current_room` | `test "$(cat $HOME/.tw2ta_game/current_room)" = "kitchen"` |
-| `put apple on stove` | `cp ~/apple $HOME/.tw2ta_game/stove/` | `test -f $HOME/.tw2ta_game/stove/apple` |
+| `put apple on stove` | `mv ~/apple $HOME/.tw2ta_game/kitchen/stove/` | `test -f $HOME/.tw2ta_game/kitchen/stove/apple` |
 
 ### Повний приклад рівня
 
 ```yaml
-name: step_01_open_chest_drawer
-test: test ! -f $HOME/.tw2ta_game/chest_drawer/.closed
-precmd: |
-  mkdir -p $HOME/.tw2ta_game/chest_drawer
-  touch $HOME/.tw2ta_game/chest_drawer/.closed
-  echo "Крок 1/8: Відчиніть шухляду"
-next: [step_02_take_old_key]
-postcmd: touch $HOME/.tw2ta_game/chest_drawer/.open
+name: step_01
+test: test ! -f $HOME/.tw2ta_game/bedroom/chest_drawer/.closed
+precmd: mkdir -p $HOME/.tw2ta_game/bedroom/chest_drawer && touch $HOME/.tw2ta_game/bedroom/chest_drawer/.closed
+postcmd: touch $HOME/.tw2ta_game/bedroom/chest_drawer/.open
+next: [step_02]
 
 ## Крок 1/8: Відчиніть контейнер
 
-Ви у кімнаті **спальня**. Перед вами **шухляда (chest_drawer)** — вона зачинена.
+Ви у кімнаті **bedroom**. Перед вами **chest drawer** — він зачинений.
 
 **Виконайте команду:**
 
 ```bash
-rm $HOME/.tw2ta_game/chest_drawer/.closed
+rm $HOME/.tw2ta_game/bedroom/chest_drawer/.closed
 ```
 
-*Оригінальна команда TextWorld:* `open {c_0}`*
+*Оригінальна команда TextWorld:* `open c_0`*
 ```
 
-### Правила мапінгу (TW_BASH_MAPPING.md)
+### Правила мапінгу (tw-simple_mapping.yaml)
 
-Файл `TW_BASH_MAPPING.md` визначає всі правила конвертації. Якщо його змінити:
+Файл `tw2ta/tw-simple_mapping.yaml` визначає всі правила конвертації. Якщо його змінити:
 
 ```bash
-# 1. Відредагуй правила
-vim TW_BASH_MAPPING.md
+# 1. Відредагуй шаблони дій
+vim tw2ta/tw-simple_mapping.yaml
 
 # 2. Перезапусти конвертацію
 ./tw2ta test_game.json
@@ -249,7 +247,7 @@ vim TW_BASH_MAPPING.md
 cat test_game.ta
 ```
 
-**Не треба чіпати код `converter.go`** — просто зміни markdown!
+**Не треба чіпати код `converter.go`** — просто зміни YAML!
 
 ## Вирішення проблем
 
@@ -309,13 +307,13 @@ tw-make tw-treasure_hunter --level 5 --output treasure.z8 --json treasure.json
 
 | TextWorld | TermAdventure |
 |-----------|---------------|
-| `open chest drawer` | Рівень з `test: game_state.sh check open c_0` |
-| `take old key` | Рівень з `test: game_state.sh has k_0` |
-| `unlock wooden door` | Рівень з `test: game_state.sh check unlocked d_0` |
-| `go east` | Рівень з `next: [step_02]` |
-| `put apple on stove` | Рівень з `test: game_state.sh check on f_1 s_2` |
+| `open chest drawer` | Рівень з `test: test ! -f $HOME/.tw2ta_game/bedroom/chest_drawer/.closed` |
+| `take old key` | Рівень з `test: test -f ~/old_key` |
+| `unlock wooden door` | Рівень з `test: test "$(cat .../door_wooden_door.state)" = "closed"` |
+| `go east` | Рівень з `test: test "$(cat .../current_room)" = "kitchen"` |
+| `put apple on stove` | Рівень з `test: test -f .../kitchen/stove/apple` |
 | Інтерпретатор Z-machine | Bash + termadventure бінарник |
-| Стан у пам'яті | Стан у файлах `/tmp/` |
+| Стан у пам'яті | Стан у файлах `$HOME/.tw2ta_game/` |
 
 ## Наступні кроки
 

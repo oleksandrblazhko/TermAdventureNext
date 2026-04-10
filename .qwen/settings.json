@@ -8,7 +8,8 @@
       "Bash(git restore *)",
       "Bash(git commit *)",
       "Bash(git push)",
-      "Bash(go *)"
+      "Bash(go *)",
+      "Bash(git mv *)"
     ]
   },
   "$version": 3
