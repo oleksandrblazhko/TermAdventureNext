@@ -24,7 +24,7 @@ type BashMapping struct {
 	Actions map[string]*ActionMapping
 	
 	// Глобальні налаштування
-	GameDir       string // /tmp/game/<challenge_name>
+	GameDir       string // $HOME/.tw2ta_game
 	ItemsDir      string // /tmp/items
 	InventoryDir  string // ~/
 }
@@ -43,7 +43,7 @@ func LoadMappingFromFile(filepath string) (*BashMapping, error) {
 func ParseMarkdownMapping(content string) (*BashMapping, error) {
 	mapping := &BashMapping{
 		Actions: make(map[string]*ActionMapping),
-		GameDir: "/tmp/game",
+		GameDir: "$HOME/.tw2ta_game",
 		ItemsDir: "/tmp/items",
 		InventoryDir: "~",
 	}

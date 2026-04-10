@@ -263,61 +263,61 @@ func extractTemplateVars(gs *GameState, action ActionStep) map[string]string {
 // generateFallbackCommands - вбудовані правила якщо мапінг не знайдено
 func generateFallbackCommands(gs *GameState, action ActionStep) (test, precmd, postcmd, playerCmd string) {
 	actionName := action.ActionName
-	
+
 	switch {
 	case actionName == "open/c":
 		containerID := extractEntityID(action.Command)
-		test = fmt.Sprintf("test ! -f /tmp/game/%s/.closed", containerID)
-		precmd = fmt.Sprintf("mkdir -p /tmp/game/%s && touch /tmp/game/%s/.closed", containerID, containerID)
-		playerCmd = fmt.Sprintf("rm /tmp/game/%s/.closed", containerID)
-		postcmd = fmt.Sprintf("touch /tmp/game/%s/.open", containerID)
-		
+		test = fmt.Sprintf("test ! -f $HOME/.tw2ta_game/%s/.closed", containerID)
+		precmd = fmt.Sprintf("mkdir -p $HOME/.tw2ta_game/%s && touch $HOME/.tw2ta_game/%s/.closed", containerID, containerID)
+		playerCmd = fmt.Sprintf("rm $HOME/.tw2ta_game/%s/.closed", containerID)
+		postcmd = fmt.Sprintf("touch $HOME/.tw2ta_game/%s/.open", containerID)
+
 	case actionName == "take/c":
 		itemID := extractItemID(action.Command)
 		containerID := extractContainerFromCommand(action.Command)
 		test = fmt.Sprintf("test -f ~/%s", itemID)
-		precmd = fmt.Sprintf("mkdir -p /tmp/game/%s && touch /tmp/game/%s/%s", containerID, containerID, itemID)
-		playerCmd = fmt.Sprintf("cp /tmp/game/%s/%s ~/", containerID, itemID)
-		postcmd = fmt.Sprintf("echo '%s taken' >> /tmp/game/inventory.log", itemID)
-		
+		precmd = fmt.Sprintf("mkdir -p $HOME/.tw2ta_game/%s && touch $HOME/.tw2ta_game/%s/%s", containerID, containerID, itemID)
+		playerCmd = fmt.Sprintf("cp $HOME/.tw2ta_game/%s/%s ~/", containerID, itemID)
+		postcmd = fmt.Sprintf("echo '%s taken' >> $HOME/.tw2ta_game/inventory.log", itemID)
+
 	case actionName == "put":
 		itemID := extractItemID(action.Command)
 		supporterID := extractSupporterID(action.Command)
-		test = fmt.Sprintf("test -f /tmp/game/%s/%s", supporterID, itemID)
-		precmd = fmt.Sprintf("mkdir -p /tmp/game/%s", supporterID)
-		playerCmd = fmt.Sprintf("cp ~/%s /tmp/game/%s/", itemID, supporterID)
+		test = fmt.Sprintf("test -f $HOME/.tw2ta_game/%s/%s", supporterID, itemID)
+		precmd = fmt.Sprintf("mkdir -p $HOME/.tw2ta_game/%s", supporterID)
+		playerCmd = fmt.Sprintf("cp ~/%s $HOME/.tw2ta_game/%s/", itemID, supporterID)
 		postcmd = fmt.Sprintf("rm ~/%s", itemID)
-		
+
 	case actionName == "unlock/d":
 		doorID := extractEntityID(action.Command)
-		test = fmt.Sprintf("test \"$(cat /tmp/game/door_%s.state)\" = \"closed\"", doorID)
-		precmd = fmt.Sprintf("echo 'locked' > /tmp/game/door_%s.state", doorID)
-		playerCmd = fmt.Sprintf("echo 'closed' > /tmp/game/door_%s.state", doorID)
-		postcmd = fmt.Sprintf("touch /tmp/game/door_%s.unlocked", doorID)
-		
+		test = fmt.Sprintf("test \"$(cat $HOME/.tw2ta_game/door_%s.state)\" = \"closed\"", doorID)
+		precmd = fmt.Sprintf("echo 'locked' > $HOME/.tw2ta_game/door_%s.state", doorID)
+		playerCmd = fmt.Sprintf("echo 'closed' > $HOME/.tw2ta_game/door_%s.state", doorID)
+		postcmd = fmt.Sprintf("touch $HOME/.tw2ta_game/door_%s.unlocked", doorID)
+
 	case actionName == "open/d":
 		doorID := extractEntityID(action.Command)
-		test = fmt.Sprintf("test \"$(cat /tmp/game/door_%s.state)\" = \"open\"", doorID)
-		precmd = fmt.Sprintf("echo 'closed' > /tmp/game/door_%s.state", doorID)
-		playerCmd = fmt.Sprintf("echo 'open' > /tmp/game/door_%s.state", doorID)
-		postcmd = fmt.Sprintf("echo 'door %s open' >> /tmp/game/doors.log", doorID)
-		
+		test = fmt.Sprintf("test \"$(cat $HOME/.tw2ta_game/door_%s.state)\" = \"open\"", doorID)
+		precmd = fmt.Sprintf("echo 'closed' > $HOME/.tw2ta_game/door_%s.state", doorID)
+		playerCmd = fmt.Sprintf("echo 'open' > $HOME/.tw2ta_game/door_%s.state", doorID)
+		postcmd = fmt.Sprintf("echo 'door %s open' >> $HOME/.tw2ta_game/doors.log", doorID)
+
 	case strings.HasPrefix(actionName, "go/"):
 		if action.TargetRoom != "" {
-			test = fmt.Sprintf("test \"$(cat ~/.current_room)\" = \"%s\"", action.TargetRoom)
-			precmd = "mkdir -p /tmp/rooms"
-			playerCmd = fmt.Sprintf("echo '%s' > ~/.current_room", action.TargetRoom)
-			postcmd = fmt.Sprintf("echo 'Moved to %s at $(date)' >> /tmp/game/movement.log", action.TargetRoom)
+			test = fmt.Sprintf("test \"$(cat $HOME/.tw2ta_game/current_room)\" = \"%s\"", action.TargetRoom)
+			precmd = "mkdir -p $HOME/.tw2ta_game/rooms"
+			playerCmd = fmt.Sprintf("echo '%s' > $HOME/.tw2ta_game/current_room", action.TargetRoom)
+			postcmd = fmt.Sprintf("echo 'Moved to %s at $(date)' >> $HOME/.tw2ta_game/movement.log", action.TargetRoom)
 		} else {
 			test = "true"
 			playerCmd = "echo 'Перейдіть у наступну кімнату'"
 		}
-		
+
 	default:
 		test = "true"
 		playerCmd = "# Виконайте дію: " + action.Command
 	}
-	
+
 	return
 }
 
