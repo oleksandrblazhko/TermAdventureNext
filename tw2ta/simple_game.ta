@@ -29,9 +29,9 @@ next: [step_01]
 --------------------
 
 name: step_01
-test: `test ! -f $HOME/.tw2ta_game/chest_drawer/.closed`
-precmd: `mkdir -p $HOME/.tw2ta_game/chest_drawer && touch $HOME/.tw2ta_game/chest_drawer/.closed`
-postcmd: `touch $HOME/.tw2ta_game/chest_drawer/.open`
+test: test ! -f $HOME/.tw2ta_game/c_0/.closed
+precmd: mkdir -p $HOME/.tw2ta_game/c_0 && touch $HOME/.tw2ta_game/c_0/.closed
+postcmd: touch $HOME/.tw2ta_game/c_0/.open
 next: [step_02]
 
 
@@ -47,7 +47,7 @@ next: [step_02]
 **Виконайте команду:**
 
 ```bash
-`rm $HOME/.tw2ta_game/chest_drawer/.closed`
+rm $HOME/.tw2ta_game/c_0/.closed
 ```
 
 *Оригінальна команда TextWorld:* `open c_0`*
@@ -56,9 +56,9 @@ next: [step_02]
 --------------------
 
 name: step_02
-test: `test -f ~/old_key`
-precmd: `mkdir -p $HOME/.tw2ta_game/chest_drawer && cp /tmp/items/old_key $HOME/.tw2ta_game/chest_drawer/ 2>/dev/null
-postcmd: `echo "old_key taken" >> $HOME/.tw2ta_game/inventory.log`
+test: test -f ~/k_0} from {c_0
+precmd: mkdir -p $HOME/.tw2ta_game/c_0 && touch $HOME/.tw2ta_game/c_0/k_0} from {c_0
+postcmd: echo 'k_0} from {c_0 taken' >> $HOME/.tw2ta_game/inventory.log
 next: [step_03]
 
 
@@ -73,7 +73,7 @@ next: [step_03]
 **Виконайте команду:**
 
 ```bash
-`cp $HOME/.tw2ta_game/chest_drawer/old_key ~/`
+cp $HOME/.tw2ta_game/c_0/k_0} from {c_0 ~/
 ```
 
 *Оригінальна команда TextWorld:* `take k_0 from c_0`*
@@ -82,9 +82,9 @@ next: [step_03]
 --------------------
 
 name: step_03
-test: `test "$(cat $HOME/.tw2ta_game/door_wooden_door.state)" = "closed" && test -f ~/old_key`
-precmd: `echo "locked" > $HOME/.tw2ta_game/door_wooden_door.state`
-postcmd: `touch $HOME/.tw2ta_game/door_wooden_door.unlocked`
+test: test "$(cat $HOME/.tw2ta_game/door_d_0} with {k_0.state)" = "closed"
+precmd: echo 'locked' > $HOME/.tw2ta_game/door_d_0} with {k_0.state
+postcmd: touch $HOME/.tw2ta_game/door_d_0} with {k_0.unlocked
 next: [step_04]
 
 
@@ -98,7 +98,7 @@ next: [step_04]
 **Виконайте команду:**
 
 ```bash
-`echo "closed" > $HOME/.tw2ta_game/door_wooden_door.state` (якщо ключ є)
+echo 'closed' > $HOME/.tw2ta_game/door_d_0} with {k_0.state
 ```
 
 *Оригінальна команда TextWorld:* `unlock d_0 with k_0`*
@@ -107,9 +107,9 @@ next: [step_04]
 --------------------
 
 name: step_04
-test: `test "$(cat $HOME/.tw2ta_game/door_wooden_door.state)" = "open"`
-precmd: `echo "closed" > $HOME/.tw2ta_game/door_wooden_door.state`
-postcmd: `echo "door_wooden_door: open" >> $HOME/.tw2ta_game/doors.log`
+test: test "$(cat $HOME/.tw2ta_game/door_d_0.state)" = "open"
+precmd: echo 'closed' > $HOME/.tw2ta_game/door_d_0.state
+postcmd: echo 'door d_0 open' >> $HOME/.tw2ta_game/doors.log
 next: [step_05]
 
 
@@ -124,7 +124,7 @@ next: [step_05]
 **Виконайте команду:**
 
 ```bash
-`echo "open" > $HOME/.tw2ta_game/door_wooden_door.state`
+echo 'open' > $HOME/.tw2ta_game/door_d_0.state
 ```
 
 *Оригінальна команда TextWorld:* `open d_0`*
@@ -159,9 +159,9 @@ echo 'r_0' > $HOME/.tw2ta_game/current_room
 --------------------
 
 name: step_06
-test: `test ! -f $HOME/.tw2ta_game/chest_drawer/.closed`
-precmd: `mkdir -p $HOME/.tw2ta_game/chest_drawer && touch $HOME/.tw2ta_game/chest_drawer/.closed`
-postcmd: `touch $HOME/.tw2ta_game/chest_drawer/.open`
+test: test ! -f $HOME/.tw2ta_game/c_2/.closed
+precmd: mkdir -p $HOME/.tw2ta_game/c_2 && touch $HOME/.tw2ta_game/c_2/.closed
+postcmd: touch $HOME/.tw2ta_game/c_2/.open
 next: [step_07]
 
 
@@ -177,7 +177,7 @@ next: [step_07]
 **Виконайте команду:**
 
 ```bash
-`rm $HOME/.tw2ta_game/chest_drawer/.closed`
+rm $HOME/.tw2ta_game/c_2/.closed
 ```
 
 *Оригінальна команда TextWorld:* `open c_2`*
@@ -186,9 +186,9 @@ next: [step_07]
 --------------------
 
 name: step_07
-test: `test -f ~/old_key`
-precmd: `mkdir -p $HOME/.tw2ta_game/chest_drawer && cp /tmp/items/old_key $HOME/.tw2ta_game/chest_drawer/ 2>/dev/null
-postcmd: `echo "old_key taken" >> $HOME/.tw2ta_game/inventory.log`
+test: test -f ~/f_1} from {c_2
+precmd: mkdir -p $HOME/.tw2ta_game/c_2 && touch $HOME/.tw2ta_game/c_2/f_1} from {c_2
+postcmd: echo 'f_1} from {c_2 taken' >> $HOME/.tw2ta_game/inventory.log
 next: [step_08]
 
 
@@ -203,7 +203,7 @@ next: [step_08]
 **Виконайте команду:**
 
 ```bash
-`cp $HOME/.tw2ta_game/chest_drawer/old_key ~/`
+cp $HOME/.tw2ta_game/c_2/f_1} from {c_2 ~/
 ```
 
 *Оригінальна команда TextWorld:* `take f_1 from c_2`*
@@ -212,9 +212,9 @@ next: [step_08]
 --------------------
 
 name: step_08
-test: `test -f $HOME/.tw2ta_game/stove/apple`
-precmd: `mkdir -p $HOME/.tw2ta_game/stove`
-postcmd: `rm ~/apple && touch $HOME/.tw2ta_game/win_condition`
+test: test -f $HOME/.tw2ta_game/s_2/f_1} on {s_2
+precmd: mkdir -p $HOME/.tw2ta_game/s_2
+postcmd: rm ~/f_1} on {s_2
 next: [final]
 
 
@@ -229,7 +229,7 @@ next: [final]
 **Виконайте команду:**
 
 ```bash
-`cp ~/apple $HOME/.tw2ta_game/stove/`
+cp ~/f_1} on {s_2 $HOME/.tw2ta_game/s_2/
 ```
 
 *Оригінальна команда TextWorld:* `put f_1 on s_2`*
