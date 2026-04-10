@@ -162,6 +162,23 @@ func generateCommandsFromMapping(gs *GameState, action ActionStep, mapping *Bash
 	return generateFallbackCommands(gs, action)
 }
 
+// toBashName - конвертує читабельну назву у bash-безпечне ім'я
+// "chest drawer" → "chest_drawer", "wooden door" → "wooden_door"
+func toBashName(name string) string {
+	name = strings.ToLower(name)
+	name = strings.ReplaceAll(name, " ", "_")
+	name = strings.ReplaceAll(name, "-", "_")
+	name = strings.ReplaceAll(name, "'", "")
+	name = strings.ReplaceAll(name, "(", "")
+	name = strings.ReplaceAll(name, ")", "")
+	// Прибираємо зайві підкреслення
+	for strings.Contains(name, "__") {
+		name = strings.ReplaceAll(name, "__", "_")
+	}
+	name = strings.Trim(name, "_")
+	return name
+}
+
 // extractTemplateVars - витягує змінні для шаблону
 func extractTemplateVars(gs *GameState, action ActionStep, mapping *BashMapping) map[string]string {
 	vars := make(map[string]string)
@@ -174,8 +191,13 @@ func extractTemplateVars(gs *GameState, action ActionStep, mapping *BashMapping)
 		end := strings.Index(cmd[idx:], "}")
 		if end != -1 {
 			containerID := cmd[idx+1 : idx+end]
-			vars["container"] = containerID
-			vars["container_name"] = gs.GetEntityName(containerID)
+			if c, ok := gs.Containers[containerID]; ok {
+				vars["container"] = toBashName(c.Name)
+				vars["container_name"] = c.Name
+			} else {
+				vars["container"] = containerID
+				vars["container_name"] = gs.GetEntityName(containerID)
+			}
 		}
 	}
 
@@ -184,22 +206,37 @@ func extractTemplateVars(gs *GameState, action ActionStep, mapping *BashMapping)
 		end := strings.Index(cmd[idx:], "}")
 		if end != -1 {
 			itemID := cmd[idx+1 : idx+end]
-			vars["item"] = itemID
-			vars["item_name"] = gs.GetEntityName(itemID)
+			if item, ok := gs.Items[itemID]; ok {
+				vars["item"] = toBashName(item.Name)
+				vars["item_name"] = item.Name
+			} else {
+				vars["item"] = itemID
+				vars["item_name"] = gs.GetEntityName(itemID)
+			}
 		}
 	} else if idx := strings.Index(cmd, "{k_"); idx != -1 {
 		end := strings.Index(cmd[idx:], "}")
 		if end != -1 {
 			itemID := cmd[idx+1 : idx+end]
-			vars["item"] = itemID
-			vars["item_name"] = gs.GetEntityName(itemID)
+			if item, ok := gs.Items[itemID]; ok {
+				vars["item"] = toBashName(item.Name)
+				vars["item_name"] = item.Name
+			} else {
+				vars["item"] = itemID
+				vars["item_name"] = gs.GetEntityName(itemID)
+			}
 		}
 	} else if idx := strings.Index(cmd, "{o_"); idx != -1 {
 		end := strings.Index(cmd[idx:], "}")
 		if end != -1 {
 			itemID := cmd[idx+1 : idx+end]
-			vars["item"] = itemID
-			vars["item_name"] = gs.GetEntityName(itemID)
+			if item, ok := gs.Items[itemID]; ok {
+				vars["item"] = toBashName(item.Name)
+				vars["item_name"] = item.Name
+			} else {
+				vars["item"] = itemID
+				vars["item_name"] = gs.GetEntityName(itemID)
+			}
 		}
 	}
 
@@ -208,21 +245,31 @@ func extractTemplateVars(gs *GameState, action ActionStep, mapping *BashMapping)
 		end := strings.Index(cmd[idx:], "}")
 		if end != -1 {
 			doorID := cmd[idx+1 : idx+end]
-			vars["door"] = doorID
-			vars["door_name"] = gs.GetEntityName(doorID)
+			if door, ok := gs.Doors[doorID]; ok {
+				vars["door"] = "door_" + toBashName(door.Name)
+				vars["door_name"] = door.Name
+			} else {
+				vars["door"] = doorID
+				vars["door_name"] = gs.GetEntityName(doorID)
+			}
 		}
 	}
-	
+
 	// Поверхні
 	if idx := strings.Index(cmd, "{s_"); idx != -1 {
 		end := strings.Index(cmd[idx:], "}")
 		if end != -1 {
 			supporterID := cmd[idx+1 : idx+end]
-			vars["surface"] = supporterID
-			vars["surface_name"] = gs.GetEntityName(supporterID)
+			if s, ok := gs.Supporters[supporterID]; ok {
+				vars["surface"] = toBashName(s.Name)
+				vars["surface_name"] = s.Name
+			} else {
+				vars["surface"] = supporterID
+				vars["surface_name"] = gs.GetEntityName(supporterID)
+			}
 		}
 	}
-	
+
 	// Ключі (для unlock)
 	if strings.Contains(cmd, "with {") {
 		if idx := strings.Index(cmd, "with {"); idx != -1 {
@@ -230,8 +277,13 @@ func extractTemplateVars(gs *GameState, action ActionStep, mapping *BashMapping)
 			end := strings.Index(cmd[start:], "}")
 			if end != -1 {
 				keyID := cmd[start : start+end]
-				vars["key"] = keyID
-				vars["key_name"] = gs.GetEntityName(keyID)
+				if item, ok := gs.Items[keyID]; ok {
+					vars["key"] = toBashName(item.Name)
+					vars["key_name"] = item.Name
+				} else {
+					vars["key"] = keyID
+					vars["key_name"] = gs.GetEntityName(keyID)
+				}
 			}
 		}
 	}
@@ -241,9 +293,13 @@ func extractTemplateVars(gs *GameState, action ActionStep, mapping *BashMapping)
 		direction := strings.TrimPrefix(action.ActionName, "go/")
 		vars["direction"] = direction
 		if action.TargetRoom != "" {
-			vars["room"] = action.TargetRoom
+			vars["room"] = gs.GetEntityName(action.TargetRoom)
 			vars["room_name"] = gs.GetEntityName(action.TargetRoom)
 		}
+	} else if action.SourceRoom != "" {
+		// Для всіх інших дій — кімната де виконується дія
+		vars["room"] = toBashName(gs.GetEntityName(action.SourceRoom))
+		vars["room_name"] = gs.GetEntityName(action.SourceRoom)
 	}
 
 	// Глобальні змінні з YAML

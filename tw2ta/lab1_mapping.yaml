@@ -598,31 +598,31 @@ action_templates:
   open/c:
     description: "Відчинити контейнер"
     textworld_example: "open chest drawer"
-    player_command: "rm {container}/.closed"
-    test: "test ! -f {container}/.closed"
-    precmd: "mkdir -p {container} && touch {container}/.closed"
-    postcmd: "touch {container}/.open"
+    player_command: "rm {game_dir}/{room}/{container}/.closed"
+    test: "test ! -f {game_dir}/{room}/{container}/.closed"
+    precmd: "mkdir -p {game_dir}/{room}/{container} && touch {game_dir}/{room}/{container}/.closed"
+    postcmd: "touch {game_dir}/{room}/{container}/.open"
 
   close/c:
     description: "Зачинити контейнер"
     textworld_example: "close chest drawer"
-    player_command: "touch {container}/.closed"
-    test: "test -f {container}/.closed"
-    postcmd: "rm -f {container}/.open"
+    player_command: "touch {game_dir}/{room}/{container}/.closed"
+    test: "test -f {game_dir}/{room}/{container}/.closed"
+    postcmd: "rm -f {game_dir}/{room}/{container}/.open"
 
   take/c:
     description: "Взяти предмет з контейнера"
     textworld_example: "take old key from chest drawer"
-    player_command: "mv {container}/{item} ~/"
+    player_command: "mv {game_dir}/{room}/{container}/{item} ~/"
     test: "test -f ~/{item}"
-    precmd: "mkdir -p {container} && touch {container}/.closed"
+    precmd: "mkdir -p {game_dir}/{room}/{container}"
     postcmd: "echo '{item} taken' >> {inventory_log}"
 
   insert:
     description: "Покласти предмет у контейнер"
     textworld_example: "insert old key into chest drawer"
-    player_command: "mv ~/{item} {container}/"
-    test: "test -f {container}/{item} && test ! -f ~/{item}"
+    player_command: "mv ~/{item} {game_dir}/{room}/{container}/"
+    test: "test -f {game_dir}/{room}/{container}/{item} && test ! -f ~/{item}"
     postcmd: "rm ~/{item}"
 
   # ── Двері ──
@@ -630,47 +630,47 @@ action_templates:
   open/d:
     description: "Відчинити двері"
     textworld_example: "open wooden door"
-    player_command: 'echo "open" > {door}.state'
-    test: 'test "$(cat {door}.state)" = "open"'
-    precmd: 'echo "closed" > {door}.state'
+    player_command: 'echo "open" > {game_dir}/{door}.state'
+    test: 'test "$(cat {game_dir}/{door}.state)" = "open"'
+    precmd: 'echo "closed" > {game_dir}/{door}.state'
     postcmd: 'echo "{door}: open" >> {doors_log}'
 
   close/d:
     description: "Зачинити двері"
     textworld_example: "close wooden door"
-    player_command: 'echo "closed" > {door}.state'
-    test: 'test "$(cat {door}.state)" = "closed"'
+    player_command: 'echo "closed" > {game_dir}/{door}.state'
+    test: 'test "$(cat {game_dir}/{door}.state)" = "closed"'
 
   unlock/d:
     description: "Відімкнути двері ключем"
     textworld_example: "unlock wooden door with old key"
-    player_command: 'echo "closed" > {door}.state'
-    test: 'test "$(cat {door}.state)" = "closed" && test -f ~/{key}'
-    precmd: 'echo "locked" > {door}.state'
-    postcmd: "touch {door}.unlocked"
+    player_command: 'echo "closed" > {game_dir}/{door}.state'
+    test: 'test "$(cat {game_dir}/{door}.state)" = "closed" && test -f ~/{key}'
+    precmd: 'echo "locked" > {game_dir}/{door}.state'
+    postcmd: "touch {game_dir}/{door}.unlocked"
 
   lock/d:
     description: "Замкнути двері ключем"
     textworld_example: "lock wooden door with old key"
-    player_command: 'echo "locked" > {door}.state'
-    test: 'test "$(cat {door}.state)" = "locked" && test -f ~/{key}'
+    player_command: 'echo "locked" > {game_dir}/{door}.state'
+    test: 'test "$(cat {game_dir}/{door}.state)" = "locked" && test -f ~/{key}'
 
   # ── Поверхні ──
 
   take/s:
     description: "Взяти предмет з поверхні"
     textworld_example: "take apple from stove"
-    player_command: "mv {surface}/{item} ~/"
+    player_command: "mv {game_dir}/{room}/{surface}/{item} ~/"
     test: "test -f ~/{item}"
-    precmd: "mkdir -p {surface} && touch {surface}/{item}"
-    postcmd: "rm {surface}/{item}"
+    precmd: "mkdir -p {game_dir}/{room}/{surface} && touch {game_dir}/{room}/{surface}/{item}"
+    postcmd: "rm {game_dir}/{room}/{surface}/{item}"
 
   put:
     description: "Покласти предмет на поверхню"
     textworld_example: "put apple on stove"
-    player_command: "mv ~/{item} {surface}/"
-    test: "test -f {surface}/{item}"
-    precmd: "mkdir -p {surface}"
+    player_command: "mv ~/{item} {game_dir}/{room}/{surface}/"
+    test: "test -f {game_dir}/{room}/{surface}/{item}"
+    precmd: "mkdir -p {game_dir}/{room}/{surface}"
     postcmd: "rm ~/{item}"
 
   # ── Переміщення ──
