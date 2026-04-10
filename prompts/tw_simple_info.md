@@ -16,7 +16,7 @@ tw-make tw-simple --goal brief --seed 5 --output simple_game.z8 --rewards sparse
 
 ---
 
-## Карта світу — розташування кімнат (World Map - Room Layout)
+## Приклад карти світу — розташування кімнат (World Map - Room Layout)
 
 ```
                     ┌─────────────┐

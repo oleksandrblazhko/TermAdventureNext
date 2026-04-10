@@ -1,0 +1,253 @@
+name: intro
+test: true
+precmd: echo 'Початок челенджу: simple_game'
+next: [step_01]
+
+
+# Ласкаво просимо до TextWorld!
+
+**Челендж:** simple_game
+**Тема:** 
+
+Ви у кімнаті **bedroom** (bedroom).
+
+Тут є:
+- **chest drawer** (зачинений)
+- **antique trunk** (зачинений)
+
+Поверхні:
+- **king-size bed**
+
+Двері:
+- до bedroom через **wooden door** (замкнені)
+
+
+**Ваше завдання:** Виконуйте кроки послідовно. Кожен крок — це окремий рівень.
+
+Введіть "help" щоб побачити доступні команди.
+
+--------------------
+
+name: step_01
+test: `test ! -f $HOME/.tw2ta_game/chest_drawer/.closed`
+precmd: `mkdir -p $HOME/.tw2ta_game/chest_drawer && touch $HOME/.tw2ta_game/chest_drawer/.closed`
+postcmd: `touch $HOME/.tw2ta_game/chest_drawer/.open`
+next: [step_02]
+
+
+## Крок 1/8: Відчиніть контейнер
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Перед вами **chest drawer** — він зачинений.
+Всередині щось є...
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+`rm $HOME/.tw2ta_game/chest_drawer/.closed`
+```
+
+*Оригінальна команда TextWorld:* `open c_0`*
+
+
+--------------------
+
+name: step_02
+test: `test -f ~/old_key`
+precmd: `mkdir -p $HOME/.tw2ta_game/chest_drawer && cp /tmp/items/old_key $HOME/.tw2ta_game/chest_drawer/ 2>/dev/null
+postcmd: `echo "old_key taken" >> $HOME/.tw2ta_game/inventory.log`
+next: [step_03]
+
+
+## Крок 2/8: Візьміть предмет
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Всередині **chest drawer** ви бачите **k_0} from {c_0**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+`cp $HOME/.tw2ta_game/chest_drawer/old_key ~/`
+```
+
+*Оригінальна команда TextWorld:* `take k_0 from c_0`*
+
+
+--------------------
+
+name: step_03
+test: `test "$(cat $HOME/.tw2ta_game/door_wooden_door.state)" = "closed" && test -f ~/old_key`
+precmd: `echo "locked" > $HOME/.tw2ta_game/door_wooden_door.state`
+postcmd: `touch $HOME/.tw2ta_game/door_wooden_door.unlocked`
+next: [step_04]
+
+
+## Крок 3/8: Відімкніть двері
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+`echo "closed" > $HOME/.tw2ta_game/door_wooden_door.state` (якщо ключ є)
+```
+
+*Оригінальна команда TextWorld:* `unlock d_0 with k_0`*
+
+
+--------------------
+
+name: step_04
+test: `test "$(cat $HOME/.tw2ta_game/door_wooden_door.state)" = "open"`
+precmd: `echo "closed" > $HOME/.tw2ta_game/door_wooden_door.state`
+postcmd: `echo "door_wooden_door: open" >> $HOME/.tw2ta_game/doors.log`
+next: [step_05]
+
+
+## Крок 4/8: Відчиніть двері
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+**wooden door** зачинені, але відімкнені. Відчиніть їх.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+`echo "open" > $HOME/.tw2ta_game/door_wooden_door.state`
+```
+
+*Оригінальна команда TextWorld:* `open d_0`*
+
+
+--------------------
+
+name: step_05
+test: test "$(cat $HOME/.tw2ta_game/current_room)" = "r_0"
+precmd: mkdir -p $HOME/.tw2ta_game/rooms
+postcmd: echo 'Moved to r_0 at $(date)' >> $HOME/.tw2ta_game/movement.log
+next: [step_06]
+
+
+## Крок 5/8: Йдіть на схід
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Перейдіть до кімнати **bedroom**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'r_0' > $HOME/.tw2ta_game/current_room
+```
+
+*Оригінальна команда TextWorld:* `go east`*
+
+
+--------------------
+
+name: step_06
+test: `test ! -f $HOME/.tw2ta_game/chest_drawer/.closed`
+precmd: `mkdir -p $HOME/.tw2ta_game/chest_drawer && touch $HOME/.tw2ta_game/chest_drawer/.closed`
+postcmd: `touch $HOME/.tw2ta_game/chest_drawer/.open`
+next: [step_07]
+
+
+## Крок 6/8: Відчиніть контейнер
+
+Ви знаходитесь у кімнаті **kitchen**.
+
+Перед вами **refrigerator** — він зачинений.
+Всередині щось є...
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+`rm $HOME/.tw2ta_game/chest_drawer/.closed`
+```
+
+*Оригінальна команда TextWorld:* `open c_2`*
+
+
+--------------------
+
+name: step_07
+test: `test -f ~/old_key`
+precmd: `mkdir -p $HOME/.tw2ta_game/chest_drawer && cp /tmp/items/old_key $HOME/.tw2ta_game/chest_drawer/ 2>/dev/null
+postcmd: `echo "old_key taken" >> $HOME/.tw2ta_game/inventory.log`
+next: [step_08]
+
+
+## Крок 7/8: Візьміть предмет
+
+Ви знаходитесь у кімнаті **kitchen**.
+
+Всередині **refrigerator** ви бачите **f_1} from {c_2**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+`cp $HOME/.tw2ta_game/chest_drawer/old_key ~/`
+```
+
+*Оригінальна команда TextWorld:* `take f_1 from c_2`*
+
+
+--------------------
+
+name: step_08
+test: `test -f $HOME/.tw2ta_game/stove/apple`
+precmd: `mkdir -p $HOME/.tw2ta_game/stove`
+postcmd: `rm ~/apple && touch $HOME/.tw2ta_game/win_condition`
+next: [final]
+
+
+## Крок 8/8: Покладіть на поверхню
+
+Ви знаходитесь у кімнаті **kitchen**.
+
+У вас є **f_1} on {s_2**. Покладіть його на **stove**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+`cp ~/apple $HOME/.tw2ta_game/stove/`
+```
+
+*Оригінальна команда TextWorld:* `put f_1 on s_2`*
+
+
+--------------------
+
+name: final
+test: true
+precmd: echo 'Квест завершено! Загальна винагорода: 1 балів'
+
+
+# 🎉 Вітаємо! Квест пройдено!
+
+Ви успішно виконали всі кроки челенджу!
+
+**Статистика:**
+- Квестів пройдено: 2
+- Винагорода: 1 балів
+
+Тепер ви можете завершити сесію командою "exit".
