@@ -1,11 +1,13 @@
 package main
 
 import (
-	"fmt"
-	"strings"
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"gopkg.in/yaml.v2"
 )
 
 // LevelData - дані для шаблону рівня
@@ -352,24 +354,24 @@ func generateFinalLevel(gs *GameState) string {
 func renderLevel(level LevelData) string {
 	var buf bytes.Buffer
 
-	// YAML метадані
-	fmt.Fprintf(&buf, "name: %s\n", level.Name)
-	fmt.Fprintf(&buf, "test: %s\n", level.Test)
-	
+	// YAML метадані — використовуємо yaml.Marshal для безпечного екранування
+	fmt.Fprintf(&buf, "name: %s\n", yamlQuote(level.Name))
+	fmt.Fprintf(&buf, "test: %s\n", yamlQuote(level.Test))
+
 	if level.PreCmd != "" {
-		fmt.Fprintf(&buf, "precmd: %s\n", level.PreCmd)
+		fmt.Fprintf(&buf, "precmd: %s\n", yamlQuote(level.PreCmd))
 	}
 	if level.PostCmd != "" {
-		fmt.Fprintf(&buf, "postcmd: %s\n", level.PostCmd)
+		fmt.Fprintf(&buf, "postcmd: %s\n", yamlQuote(level.PostCmd))
 	}
 	if level.PostPrintCmd != "" {
-		fmt.Fprintf(&buf, "postprintcmd: %s\n", level.PostPrintCmd)
+		fmt.Fprintf(&buf, "postprintcmd: %s\n", yamlQuote(level.PostPrintCmd))
 	}
-	
+
 	if len(level.NextLevels) > 0 {
 		fmt.Fprintf(&buf, "next: [%s]\n", strings.Join(level.NextLevels, ", "))
 	}
-	
+
 	if level.BackgroundJobs {
 		fmt.Fprintf(&buf, "bgjobs: true\n")
 	}
@@ -379,11 +381,52 @@ func renderLevel(level LevelData) string {
 
 	// Порожній рядок між метаданими та текстом
 	buf.WriteString("\n\n")
-	
+
 	// Markdown текст
 	buf.WriteString(level.Text)
 
 	return buf.String()
+}
+
+// yamlQuote - безпечно квотує значення для YAML
+// Якщо значення містить спеціальні символи — обгортає в подвійні лапки
+// з екрануванням через yaml.Marshal
+func yamlQuote(s string) string {
+	s = strings.TrimSpace(s)
+	// Прості значення без спецсимволів — залишаємо як є
+	if !needsQuoting(s) {
+		return s
+	}
+	// Використовуємо yaml.Marshal для коректного екранування
+	data, err := yaml.Marshal(s)
+	if err != nil {
+		// Fallback: обгортаємо в подвійні лапки з екрануванням
+		return `"` + strings.ReplaceAll(s, `"`, `\"`) + `"`
+	}
+	return strings.TrimSpace(string(data))
+}
+
+// needsQuoting — перевіряє чи значення потребує YAML-квайтування
+func needsQuoting(s string) bool {
+	if s == "" {
+		return false
+	}
+	// Спецсимволи YAML
+	specialChars := []string{":", "\"", "'", "#", "{", "}", "[", "]", ",", "&", "*", "?", "|", "-", "<", ">", "=", "!", "%", "@", "`"}
+	for _, ch := range specialChars {
+		if strings.Contains(s, ch) {
+			return true
+		}
+	}
+	// Починається з пробілу
+	if s[0] == ' ' {
+		return true
+	}
+	// Схоже на число/булеве
+	if s == "true" || s == "false" || s == "null" {
+		return true
+	}
+	return false
 }
 
 

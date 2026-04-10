@@ -112,8 +112,8 @@ func ParseMarkdownMapping(content string) (*BashMapping, error) {
 				// Маємо 3 колонки: Поле, Значення, (опціонально)
 				if len(cleanParts) >= 2 {
 					fieldName := cleanParts[0]
-					value := cleanParts[1]
-					
+					value := stripBackticks(cleanParts[1])
+
 					switch fieldName {
 					case "precmd", "`precmd`":
 						action.PreCmd = value
@@ -186,4 +186,11 @@ func (bm *BashMapping) FindAllActions() []string {
 		actions = append(actions, name)
 	}
 	return actions
+}
+
+// stripBackticks - прибирає backticks зі значень таблиці Markdown
+func stripBackticks(s string) string {
+	s = strings.TrimSpace(s)
+	s = strings.Trim(s, "`")
+	return strings.TrimSpace(s)
 }
