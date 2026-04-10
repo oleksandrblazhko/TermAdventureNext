@@ -18,27 +18,23 @@ git pull origin main
 go build -o tw2ta ./tw2ta/
 
 # Перевірити роботу
-./tw2ta --version
-./tw2ta --help
+./tw2ta/tw2ta --version
+./tw2ta/tw2ta --help
 ```
 
 ### Крок 3: Згенерувати TextWorld JSON
 
 ```bash
 # Згенерувати квест-гру типу tw-simple
-tw-make tw-simple --seed 1 --output test_game.z8 --json test_game.json --goal brief
+tw-make tw-simple --seed 1 --output test_game.z8 --goal brief --rewards dense 
 
 ```
 
 ### Крок 4: Конвертувати JSON → .ta
 
 ```bash
-
 # З явною назвою мапінгу (для інших типів ігор)
-./tw2ta --mapping tw-simple_mapping.yaml cooking_game.json --output my_quest.ta 
-
-# З явною назвою челенджу
-./tw2ta --challenge "My First Quest" test_game.json my_quest.ta
+./tw2ta/tw2ta --mapping ./tw2ta/tw-simple_mapping.yaml test_game.json --output my_quest.ta 
 
 ```
 
@@ -47,7 +43,6 @@ tw-make tw-simple --seed 1 --output test_game.z8 --json test_game.json --goal br
 ### Крок 5: Підготувати до запуску
 
 ```bash
-# game_state.sh більше не потрібен!
 # Конвертований .ta використовує прямі bash-команди
 
 # Просто переконайся що $HOME/.tw2ta_game існує
@@ -141,7 +136,7 @@ precmd: echo 'Квест завершено!'
 
 ## Як працюють bash-команди у конвертованих квестах
 
-Кожен рівень у конвертованому `.ta` файлі використовує **прямі bash-команди** замість `game_state.sh`:
+Кожен рівень у конвертованому `.ta` файлі використовує **прямі bash-команди** замість вбудованих команд для TextWorld
 
 ### Структура файлів гри
 
