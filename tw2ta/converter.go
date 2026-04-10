@@ -69,29 +69,16 @@ func ConvertToTA(gs *GameState, challengeName string) (string, error) {
 	return ta.String(), nil
 }
 
-// loadMappingFile - завантажує TW_BASH_MAPPING.md
+// loadMappingFile - завантажує lab1_mapping.yaml
 func loadMappingFile() *BashMapping {
-	// Шукаємо файл у різних місцях
+	// Шукаємо YAML-файл у різних місцях
 	searchPaths := []string{
-		"TW_BASH_MAPPING.md",
-		"../TW_BASH_MAPPING.md",
-		filepath.Join(os.Getenv("HOME"), "TermAdventureNext/TW_BASH_MAPPING.md"),
+		"lab1_mapping.yaml",
+		"../lab1_mapping.yaml",
+		filepath.Join(os.Getenv("HOME"), "TermAdventureNext/tw2ta/lab1_mapping.yaml"),
 	}
-	
-	for _, path := range searchPaths {
-		if _, err := os.Stat(path); err == nil {
-			mapping, err := LoadMappingFromFile(path)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "⚠️  Помилка читання %s: %v\n", path, err)
-				continue
-			}
-			fmt.Fprintf(os.Stderr, "✅ Завантажено мапінг: %s (%d дій)\n", path, len(mapping.Actions))
-			return mapping
-		}
-	}
-	
-	fmt.Fprintf(os.Stderr, "⚠️  TW_BASH_MAPPING.md не знайдено, використовуємо вбудовані правила\n")
-	return nil
+
+	return LoadMappingFromPaths(searchPaths)
 }
 
 // generateIntroLevel - створює вступний рівень
@@ -164,8 +151,8 @@ func generateCommandsFromMapping(gs *GameState, action ActionStep, mapping *Bash
 	// Якщо мапінг знайдено, використовуємо його
 	if actionMapping != nil {
 		// Збираємо змінні для шаблону
-		vars := extractTemplateVars(gs, action)
-		
+		vars := extractTemplateVars(gs, action, mapping)
+
 		// Застосовуємо шаблон
 		precmd, playerCmd, test, postcmd = actionMapping.ApplyTemplate(vars)
 		return
@@ -176,12 +163,12 @@ func generateCommandsFromMapping(gs *GameState, action ActionStep, mapping *Bash
 }
 
 // extractTemplateVars - витягує змінні для шаблону
-func extractTemplateVars(gs *GameState, action ActionStep) map[string]string {
+func extractTemplateVars(gs *GameState, action ActionStep, mapping *BashMapping) map[string]string {
 	vars := make(map[string]string)
-	
+
 	// Витягуємо ID з command_template
 	cmd := action.Command
-	
+
 	// Контейнери
 	if idx := strings.Index(cmd, "{c_"); idx != -1 {
 		end := strings.Index(cmd[idx:], "}")
@@ -191,7 +178,7 @@ func extractTemplateVars(gs *GameState, action ActionStep) map[string]string {
 			vars["container_name"] = gs.GetEntityName(containerID)
 		}
 	}
-	
+
 	// Предмети
 	if idx := strings.Index(cmd, "{f_"); idx != -1 {
 		end := strings.Index(cmd[idx:], "}")
@@ -215,7 +202,7 @@ func extractTemplateVars(gs *GameState, action ActionStep) map[string]string {
 			vars["item_name"] = gs.GetEntityName(itemID)
 		}
 	}
-	
+
 	// Двері
 	if idx := strings.Index(cmd, "{d_"); idx != -1 {
 		end := strings.Index(cmd[idx:], "}")
@@ -258,7 +245,18 @@ func extractTemplateVars(gs *GameState, action ActionStep) map[string]string {
 			vars["room_name"] = gs.GetEntityName(action.TargetRoom)
 		}
 	}
-	
+
+	// Глобальні змінні з YAML
+	if mapping != nil {
+		vars["inventory_log"] = mapping.InventoryLog
+		vars["doors_log"] = mapping.DoorsLog
+		vars["movement_log"] = mapping.MovementLog
+		vars["current_room"] = mapping.CurrentRoom
+		vars["win_condition"] = mapping.WinCondition
+		vars["rooms_dir"] = mapping.RoomsDir
+		vars["game_dir"] = mapping.GameDir
+	}
+
 	return vars
 }
 

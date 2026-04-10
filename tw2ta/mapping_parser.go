@@ -3,159 +3,129 @@ package main
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
+
+	"gopkg.in/yaml.v2"
 )
 
 // ActionMapping - правила конвертації однієї дії TextWorld → Bash
 type ActionMapping struct {
-	Name        string // Назва дії (open/c, take/c, тощо)
-	TextWorldCmd string // Приклад команди TextWorld
-	Description string // Опис українською
+	Name           string // Назва дії (open/c, take/c, тощо)
+	TextWorldCmd   string // Приклад команди TextWorld
+	Description    string // Опис українською
+	PlayerCommand  string // Команда для гравця
+	Test           string // test (перевірка)
+	PreCmd         string // precmd (підготовка)
+	PostCmd        string // postcmd (фіксація)
+}
 
-	PreCmd    string // precmd (підготовка)
-	Command   string // Команда для гравця
-	Test      string // test (перевірка)
-	PostCmd   string // postcmd (фіксація)
+// ActionTemplate - сирий шаблон з YAML
+type ActionTemplate struct {
+	Description   string `yaml:"description"`
+	TextWorldExample string `yaml:"textworld_example"`
+	PlayerCommand string `yaml:"player_command"`
+	Test          string `yaml:"test"`
+	PreCmd        string `yaml:"precmd"`
+	PostCmd       string `yaml:"postcmd"`
+}
+
+// TemplateVars - глобальні змінні для підстановки
+type TemplateVars struct {
+	GameDir       string `yaml:"game_dir"`
+	InventoryLog  string `yaml:"inventory_log"`
+	DoorsLog      string `yaml:"doors_log"`
+	MovementLog   string `yaml:"movement_log"`
+	CurrentRoom   string `yaml:"current_room"`
+	WinCondition  string `yaml:"win_condition"`
+	RoomsDir      string `yaml:"rooms_dir"`
+}
+
+// Lab1Mapping - коренева структура YAML-файлу
+type Lab1Mapping struct {
+	Actions         map[string]ActionTemplate `yaml:"action_templates"`
+	TemplateVars    TemplateVars              `yaml:"template_vars"`
 }
 
 // BashMapping - всі правила мапінгу
 type BashMapping struct {
 	Actions map[string]*ActionMapping
-	
+
 	// Глобальні налаштування
 	GameDir       string // $HOME/.tw2ta_game
-	ItemsDir      string // /tmp/items
-	InventoryDir  string // ~/
+	InventoryLog  string
+	DoorsLog      string
+	MovementLog   string
+	CurrentRoom   string
+	WinCondition  string
+	RoomsDir      string
 }
 
-// LoadMappingFromFile - читає та парсить TW_BASH_MAPPING.md
-func LoadMappingFromFile(filepath string) (*BashMapping, error) {
-	data, err := os.ReadFile(filepath)
+// LoadMappingFromFile - читає YAML-файл маппінгу
+func LoadMappingFromFile(path string) (*BashMapping, error) {
+	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("помилка читання %s: %w", filepath, err)
+		return nil, fmt.Errorf("помилка читання %s: %w", path, err)
 	}
 
-	return ParseMarkdownMapping(string(data))
+	return ParseYAMLMapping(string(data))
 }
 
-// ParseMarkdownMapping - парсить Markdown контент у структури
-func ParseMarkdownMapping(content string) (*BashMapping, error) {
+// ParseYAMLMapping - парсить YAML контент у структури
+func ParseYAMLMapping(content string) (*BashMapping, error) {
+	var raw Lab1Mapping
+	if err := yaml.Unmarshal([]byte(content), &raw); err != nil {
+		return nil, fmt.Errorf("помилка парсингу YAML: %w", err)
+	}
+
 	mapping := &BashMapping{
 		Actions: make(map[string]*ActionMapping),
-		GameDir: "$HOME/.tw2ta_game",
-		ItemsDir: "/tmp/items",
-		InventoryDir: "~",
+		GameDir: raw.TemplateVars.GameDir,
+		InventoryLog: raw.TemplateVars.InventoryLog,
+		DoorsLog: raw.TemplateVars.DoorsLog,
+		MovementLog: raw.TemplateVars.MovementLog,
+		CurrentRoom: raw.TemplateVars.CurrentRoom,
+		WinCondition: raw.TemplateVars.WinCondition,
+		RoomsDir: raw.TemplateVars.RoomsDir,
 	}
 
-	// 1. Знаходимо секції дій (### `action_name`)
-	actionSectionRegex := regexp.MustCompile(`^###\s+` + "`([^`]+)`" + `\s*—\s*(.+)$`)
-	
-	// 2. Знаходимо коди в блоках
-	codeBlockRegex := regexp.MustCompile("```bash\\n([\\s\\S]*?)```")
-
-	// Розділяємо контент на секції
-	sections := strings.Split(content, "\n### ")
-	
-	for _, section := range sections {
-		lines := strings.Split(strings.TrimSpace(section), "\n")
-		if len(lines) == 0 {
-			continue
-		}
-		
-		// Парсимо заголовок секції
-		headerLine := lines[0]
-		headerMatch := actionSectionRegex.FindStringSubmatch("### " + headerLine)
-		if headerMatch == nil {
-			// Можливо це не секція дії (огляд, тощо)
-			continue
-		}
-
-		actionName := headerMatch[1]
-		description := headerMatch[2]
-		
-		mapping.Actions[actionName] = &ActionMapping{
-			Name: actionName,
-			Description: description,
-		}
-		
-		action := mapping.Actions[actionName]
-		
-		// Шукаємо TextWorld команду
-		twCmdRegex := regexp.MustCompile(`\*\*TextWorld:\*\*\s+` + "`([^`]+)`")
-		if match := twCmdRegex.FindStringSubmatch(section); match != nil {
-			action.TextWorldCmd = match[1]
-		}
-		
-		// Шукаємо таблицю з полями
-		sectionText := strings.Join(lines[1:], "\n")
-		tableLines := strings.Split(sectionText, "\n")
-		inTable := false
-		
-		for _, line := range tableLines {
-			line = strings.TrimSpace(line)
-			
-			// Початок таблиці
-			if strings.HasPrefix(line, "|") && !strings.HasPrefix(line, "|---") {
-				inTable = true
-				parts := strings.Split(line, "|")
-				
-				// Очищаємо частини
-				cleanParts := make([]string, 0, len(parts))
-				for _, p := range parts {
-					p = strings.TrimSpace(p)
-					if p != "" {
-						cleanParts = append(cleanParts, p)
-					}
-				}
-				
-				// Маємо 3 колонки: Поле, Значення, (опціонально)
-				if len(cleanParts) >= 2 {
-					fieldName := cleanParts[0]
-					value := stripBackticks(cleanParts[1])
-
-					switch fieldName {
-					case "precmd", "`precmd`":
-						action.PreCmd = value
-					case "test", "`test`":
-						action.Test = value
-					case "Команда гравця", "**Команда гравця**":
-						action.Command = value
-					case "postcmd", "`postcmd`":
-						action.PostCmd = value
-					}
-				}
-			} else if strings.HasPrefix(line, "|---") {
-				inTable = true
-				continue
-			} else if line == "" || strings.HasPrefix(line, "**Логіка:**") {
-				if inTable && line == "" {
-					// Кінець таблиці
-					inTable = false
-				}
-			}
-		}
-		
-		// Якщо команда не знайдена в таблиці, шукаємо в блоці коду
-		if action.Command == "" {
-			if codeMatch := codeBlockRegex.FindStringSubmatch(sectionText); codeMatch != nil {
-				// Беремо перший рядок блоку як команду
-				lines := strings.Split(strings.TrimSpace(codeMatch[1]), "\n")
-				if len(lines) > 0 {
-					action.Command = strings.TrimSpace(lines[0])
-				}
-			}
+	// Конвертуємо сирые шаблони у ActionMapping
+	for name, tpl := range raw.Actions {
+		mapping.Actions[name] = &ActionMapping{
+			Name:          name,
+			Description:   tpl.Description,
+			TextWorldCmd:  tpl.TextWorldExample,
+			PlayerCommand: tpl.PlayerCommand,
+			Test:          tpl.Test,
+			PreCmd:        tpl.PreCmd,
+			PostCmd:       tpl.PostCmd,
 		}
 	}
 
 	return mapping, nil
 }
 
+// LoadMappingFromPaths - шукає YAML-файл у списку шляхів
+func LoadMappingFromPaths(searchPaths []string) *BashMapping {
+	for _, path := range searchPaths {
+		if _, err := os.Stat(path); err == nil {
+			mapping, err := LoadMappingFromFile(path)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "⚠️  Помилка читання %s: %v\n", path, err)
+				continue
+			}
+			fmt.Fprintf(os.Stderr, "✅ Завантажено мапінг: %s (%d дій)\n", path, len(mapping.Actions))
+			return mapping
+		}
+	}
+	fmt.Fprintf(os.Stderr, "⚠️  lab1_mapping.yaml не знайдено, використовуємо вбудовані правила\n")
+	return nil
+}
+
 // GetAction - повертає правила для конкретної дії
 func (bm *BashMapping) GetAction(actionName string) (*ActionMapping, error) {
 	action, exists := bm.Actions[actionName]
 	if !exists {
-		return nil, fmt.Errorf("дія '%s' не знайдена у TW_BASH_MAPPING.md", actionName)
+		return nil, fmt.Errorf("дія '%s' не знайдена у мапінгу", actionName)
 	}
 	return action, nil
 }
@@ -163,7 +133,7 @@ func (bm *BashMapping) GetAction(actionName string) (*ActionMapping, error) {
 // ApplyTemplate - замінює плейсхолдери {container}, {item}, тощо
 func (am *ActionMapping) ApplyTemplate(vars map[string]string) (precmd, command, test, postcmd string) {
 	precmd = am.replaceVars(am.PreCmd, vars)
-	command = am.replaceVars(am.Command, vars)
+	command = am.replaceVars(am.PlayerCommand, vars)
 	test = am.replaceVars(am.Test, vars)
 	postcmd = am.replaceVars(am.PostCmd, vars)
 	return
@@ -186,11 +156,4 @@ func (bm *BashMapping) FindAllActions() []string {
 		actions = append(actions, name)
 	}
 	return actions
-}
-
-// stripBackticks - прибирає backticks зі значень таблиці Markdown
-func stripBackticks(s string) string {
-	s = strings.TrimSpace(s)
-	s = strings.Trim(s, "`")
-	return strings.TrimSpace(s)
 }
