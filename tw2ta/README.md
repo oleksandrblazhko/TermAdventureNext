@@ -61,19 +61,23 @@ ls -la prompts/simple_game.json
 ### Крок 5: Конвертувати JSON → .ta
 
 ```bash
-# Базова конвертація
+# Базова конвертація (використовує дефолтний tw-simple_mapping.yaml)
 ./tw2ta test_game.json
 
-# Це створить test_game.ta у поточній директорії
+# З явною назвою мапінгу (для інших типів ігор)
+./tw2ta --mapping tw-cooking_mapping.yaml cooking_game.json
 
 # З явною назвою челенджу
 ./tw2ta --challenge "My First Quest" test_game.json my_quest.ta
+
+# З власним вихідним файлом
+./tw2ta --output my_quest.ta test_game.json
 
 # Переглянути результат
 head -n 50 test_game.ta
 ```
 
-**Важливо:** `tw2ta` автоматично читає `tw-simple_mapping.yaml` для генерації bash-команд. Це структурований YAML-файл з шаблонами дій. Якщо змінити цей файл — наступна конвертація використає нові правила!
+**Важливо:** За замовчуванням `tw2ta` використовує `tw-simple_mapping.yaml`. Прапор `--mapping` дозволяє вказати інший файл мапінгу для інших типів ігор (tw-cooking, tw-treasure_hunter тощо).
 
 ### Крок 6: Підготувати до запуску
 
@@ -117,16 +121,13 @@ set -e
 # 1. Генерація TextWorld гри
 tw-make tw-simple --seed 42 --output my_game.z8 --json my_game.json
 
-# 2. Конвертація у TermAdventure формат
-./tw2ta --copy-game-state my_game.json
+# 2. Конвертація у TermAdventure формат (з явним вказанням мапінгу)
+./tw2ta --mapping tw2ta/tw-simple_mapping.yaml my_game.json
 
-# 3. Підготовка
-chmod +x game_state.sh
-
-# 4. Перегляд
+# 3. Перегляд
 ./termadventure --print my_game.ta
 
-# 5. Запуск
+# 4. Запуск
 export CHALLENGE_FILE=./my_game.ta
 ./challenger.sh
 ```
@@ -291,16 +292,16 @@ head -n 20 simple_game.json
 # Більший будинок (різний seed = різна гра)
 tw-make tw-simple --seed 100 --output big_house.z8 --json big_house.json
 
-# Кулінарний квест (якщо доступний)
+# Кулінарний квест (якщо доступний) — потрібен свій мапінг!
 tw-make tw-cooking --level 3 --output cooking.z8 --json cooking.json
 
-# Пошук скарбів
+# Пошук скарбів — потрібен свій мапінг!
 tw-make tw-treasure_hunter --level 5 --output treasure.z8 --json treasure.json
 
-# Конвертуй будь-який
-./tw2ta big_house.json
-./tw2ta cooking.json
-./tw2ta treasure.json
+# Конвертація з відповідним мапінгом
+./tw2ta --mapping tw2ta/tw-simple_mapping.yaml big_house.json
+./tw2ta --mapping tw2ta/tw-cooking_mapping.yaml cooking.json       # коли буде створено
+./tw2ta --mapping tw2ta/tw-treasure_hunter_mapping.yaml treasure.json  # коли буде створено
 ```
 
 ## Порівняння: TextWorld vs TermAdventure
@@ -317,11 +318,13 @@ tw-make tw-treasure_hunter --level 5 --output treasure.z8 --json treasure.json
 
 ## Наступні кроки
 
-1. ✅ **Базова конвертація** — працює
-2. 🔲 **Підтримка інших шаблонів** (tw-cooking, tw-treasure_hunter)
-3. 🔲 **Генерація українською мовою**
-4. 🔲 **Веб-перегляд графу квесту**
-5. 🔲 **Автоматичне шифрування**
+1. ✅ **Базова конвертація** — працює з YAML мапінгом
+2. ✅ **Підтримка різних типів ігор** — через `--mapping` прапор
+3. 🔲 **Мапінг для tw-cooking**
+4. 🔲 **Мапінг для tw-treasure_hunter**
+5. 🔲 **Генерація українською мовою**
+6. 🔲 **Веб-перегляд графу квесту**
+7. 🔲 **Автоматичне шифрування**
 
 ## Довідка по tw2ta
 
@@ -329,9 +332,19 @@ tw-make tw-treasure_hunter --level 5 --output treasure.z8 --json treasure.json
 ./tw2ta --help
 
 # Опції:
-#   --output        Вихідний файл .ta
-#   --challenge     Назва челенджу
+#   --output         Вихідний файл .ta (за замовчуванням: <input>.ta)
+#   --mapping        YAML-файл мапінгу (за замовчуванням: tw-simple_mapping.yaml)
+#   --challenge      Назва челенджу (за замовчуванням: з імені файлу)
 #   --copy-game-state  Копіювати game_state.sh
-#   --version       Показати версію
-#   --help          Показати допомогу
+#   --version        Показати версію
+#   --help           Показати допомогу
 ```
+
+## Підтримувані типи ігор
+
+| Тип гри | Файл мапінгу | Статус |
+|---------|-------------|--------|
+| `tw-simple` | `tw-simple_mapping.yaml` | ✅ Створено |
+| `tw-cooking` | `tw-cooking_mapping.yaml` | 🔲 Планується |
+| `tw-treasure_hunter` | `tw-treasure_hunter_mapping.yaml` | 🔲 Планується |
+| `tw-commonsense` | `tw-commonsense_mapping.yaml` | 🔲 Планується |

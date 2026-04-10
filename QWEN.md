@@ -25,7 +25,7 @@ TermAdventure/
 │   ├── parser.go            # Парсинг TextWorld JSON
 │   ├── graph.go             # Побудова графу станів
 │   ├── converter.go         # Генерація .ta файлів
-│   └── mapping_parser.go    # Парсинг TW_BASH_MAPPING.md
+│   └── mapping_parser.go    # Парсинг tw-simple_mapping.yaml
 ├── challenger.sh        # Shell-скрипт для запуску сесії челенджу
 ├── ta_bashrc            # Кастомний bashrc для сесій челенджу (промпт, історія, аліаси)
 ├── game_state.sh        # Helper для управління станом гри (legacy)
@@ -38,7 +38,7 @@ TermAdventure/
 │   ├── Makefile
 │   └── source/conf.py
 ├── PLAN.md              # План розробки конвертера TextWorld
-├── TW_BASH_MAPPING.md   # Правила мапінгу TextWorld → Bash
+├── tw-simple_mapping.yaml # Правила мапінгу TextWorld → Bash
 ├── TW2TA_GUIDE.md       # Інструкція для tw2ta
 └── README.md
 ```
@@ -855,7 +855,7 @@ go test
            │
            ▼
 ┌─────────────────────┐
-│  mapping_parser.go  │  Читання TW_BASH_MAPPING.md
+│  mapping_parser.go  │  Читання tw-simple_mapping.yaml
 │                     │  (правила мапінгу)
 └──────────┬──────────┘
            │
@@ -884,7 +884,7 @@ tw2ta/
 ├── parser.go            # Парсинг TextWorld JSON (структури + валідація)
 ├── graph.go             # Побудова графу станів (кімнати, предмети, квести)
 ├── converter.go         # Генерація .ta файлів з графу
-├── mapping_parser.go    # Парсинг TW_BASH_MAPPING.md
+├── mapping_parser.go    # Парсинг tw-simple_mapping.yaml
 └── go.mod               # Модуль Go
 ```
 
@@ -904,9 +904,9 @@ tw2ta/
 ./tw2ta --challenge "My Quest" input.json
 ```
 
-### Правила мапінгу (TW_BASH_MAPPING.md)
+### Правила мапінгу (tw-simple_mapping.yaml)
 
-Файл `TW_BASH_MAPPING.md` визначає як конвертувати дії TextWorld у bash-команди:
+Файл `tw-simple_mapping.yaml` визначає як конвертувати дії TextWorld у bash-команди:
 
 | TextWorld дія | Bash-команда гравця | Перевірка (test) |
 |---------------|---------------------|------------------|
@@ -917,7 +917,7 @@ tw2ta/
 | `open door` | `echo "open" > /tmp/game/door_<name>.state` | `test "$(cat ...)" = "open"` |
 | `go east/west/...` | `echo "<room>" > ~/.current_room` | `test "$(cat ~/.current_room)" = "<room>"` |
 
-**Важливо:** Якщо змінити `TW_BASH_MAPPING.md`, наступна конвертація автоматично використає нові правила.
+**Важливо:** Якщо змінити `tw-simple_mapping.yaml`, наступна конвертація автоматично використає нові правила.
 
 ### Приклад згенерованого рівня
 

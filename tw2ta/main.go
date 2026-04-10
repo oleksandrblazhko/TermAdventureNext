@@ -23,6 +23,7 @@ const (
   tw2ta simple_game.json
   tw2ta --output output.ta simple_game.json
   tw2ta --challenge "My Quest" game.json
+  tw2ta --mapping tw-cooking_mapping.json cooking_game.json
   tw2ta --copy-game-state game.json
 
 Опції:`
@@ -31,6 +32,7 @@ const (
 func main() {
 	// Прапори
 	outputFlag := flag.String("output", "", "Вихідний файл .ta (за замовчуванням: <input>.ta)")
+	mappingFlag := flag.String("mapping", "", "Файл YAML-мапінгу (за замовчуванням: tw-simple_mapping.yaml)")
 	challengeFlag := flag.String("challenge", "", "Назва челенджу (за замовчуванням: з імені файлу)")
 	copyGameState := flag.Bool("copy-game-state", false, "Копіювати game_state.sh до поточної директорії")
 	versionFlag := flag.Bool("version", false, "Показати версію")
@@ -112,7 +114,7 @@ func main() {
 
 	// Конвертація у .ta формат
 	fmt.Fprintf(os.Stderr, "🔄 Конвертація у формат .ta...\n")
-	taContent, err := ConvertToTA(gameState, challengeName)
+	taContent, err := ConvertToTA(gameState, challengeName, *mappingFlag)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Помилка конвертації: %v\n", err)
 		os.Exit(1)

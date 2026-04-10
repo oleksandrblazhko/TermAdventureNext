@@ -24,9 +24,9 @@ type LevelData struct {
 }
 
 // ConvertToTA - конвертує GameState у формат .ta
-func ConvertToTA(gs *GameState, challengeName string) (string, error) {
-	// Шукаємо та парсимо TW_BASH_MAPPING.md
-	mapping := loadMappingFile()
+func ConvertToTA(gs *GameState, challengeName string, mappingPath string) (string, error) {
+	// Шукаємо та парсимо YAML-мапінг
+	mapping := loadMappingFile(mappingPath)
 	
 	var ta strings.Builder
 
@@ -69,9 +69,20 @@ func ConvertToTA(gs *GameState, challengeName string) (string, error) {
 	return ta.String(), nil
 }
 
-// loadMappingFile - завантажує tw-simple_mapping.yaml
-func loadMappingFile() *BashMapping {
-	// Шукаємо YAML-файл у різних місцях
+// loadMappingFile - завантажує YAML-мапінг
+func loadMappingFile(mappingPath string) *BashMapping {
+	// Якщо явно вказано файл
+	if mappingPath != "" {
+		mapping, err := LoadMappingFromFile(mappingPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "❌ Помилка читання %s: %v\n", mappingPath, err)
+			return nil
+		}
+		fmt.Fprintf(os.Stderr, "✅ Завантажено мапінг: %s (%d дій)\n", mappingPath, len(mapping.Actions))
+		return mapping
+	}
+
+	// Шукаємо YAML-файл у різних місцях (дефолт)
 	searchPaths := []string{
 		"tw-simple_mapping.yaml",
 		"../tw-simple_mapping.yaml",
