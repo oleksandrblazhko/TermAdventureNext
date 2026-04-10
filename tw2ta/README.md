@@ -8,78 +8,43 @@
 # Увійди на Linux-сервер
 cd ~/TermAdventureNext
 
-# Отримай останні зміни
+# Отримати останні зміни
 git pull origin main
-
-# Або якщо репозиторій ще не клоновано:
-git clone <your-repo-url> ~/TermAdventureNext
-cd ~/TermAdventureNext
 ```
-
-### Крок 2: Перевірити файли
-
-Переконайся що з'явилися нові файли:
+### Крок 2: Зібрати утиліту tw2ta
 
 ```bash
-ls -la tw2ta/
-# Має показати:
-# ├── main.go
-# ├── parser.go
-# ├── graph.go
-# ├── converter.go
-# ├── mapping_parser.go
-# └── tw-simple_mapping.yaml
-
-ls -la tw2ta/tw-simple_mapping.yaml
-```
-
-### Крок 3: Зібрати утиліту tw2ta
-
-```bash
-cd ~/TermAdventureNext
-
-# Збери утиліту
+# Зібрати утиліту
 go build -o tw2ta ./tw2ta/
 
-# Перевір що працює
+# Перевірити роботу
 ./tw2ta --version
 ./tw2ta --help
 ```
 
-### Крок 4: Згенерувати TextWorld JSON
-
-Якщо ще не маєш JSON-файлу:
+### Крок 3: Згенерувати TextWorld JSON
 
 ```bash
-# Згенеруй просту гру
-tw-make tw-simple --seed 42 --output test_game.z8 --json test_game.json --goal brief
+# Згенерувати квест-гру типу tw-simple
+tw-make tw-simple --seed 1 --output test_game.z8 --json test_game.json --goal brief
 
-# Або використовуй існуючий
-ls -la prompts/simple_game.json
 ```
 
-### Крок 5: Конвертувати JSON → .ta
+### Крок 4: Конвертувати JSON → .ta
 
 ```bash
-# Базова конвертація (використовує дефолтний tw-simple_mapping.yaml)
-./tw2ta test_game.json
 
 # З явною назвою мапінгу (для інших типів ігор)
-./tw2ta --mapping tw-cooking_mapping.yaml cooking_game.json
+./tw2ta --mapping tw-simple_mapping.yaml cooking_game.json --output my_quest.ta 
 
 # З явною назвою челенджу
 ./tw2ta --challenge "My First Quest" test_game.json my_quest.ta
 
-# З власним вихідним файлом
-./tw2ta --output my_quest.ta test_game.json
-
-# Переглянути результат
-head -n 50 test_game.ta
 ```
 
 **Важливо:** За замовчуванням `tw2ta` використовує `tw-simple_mapping.yaml`. Прапор `--mapping` дозволяє вказати інший файл мапінгу для інших типів ігор (tw-cooking, tw-treasure_hunter тощо).
 
-### Крок 6: Підготувати до запуску
+### Крок 5: Підготувати до запуску
 
 ```bash
 # game_state.sh більше не потрібен!
@@ -89,7 +54,7 @@ head -n 50 test_game.ta
 mkdir -p $HOME/.tw2ta_game
 ```
 
-### Крок 7: Збери TermAdventure (якщо ще не зібрано)
+### Крок 6: Збірка TermAdventure (якщо ще не зібрано)
 
 ```bash
 cd ~/TermAdventureNext
@@ -101,7 +66,7 @@ go build -o termadventure
 go build -ldflags "-X main.encryption_key=my_secret_key" -o termadventure
 ```
 
-### Крок 8: Тестовий запуск
+### Крок 7: Тестовий запуск
 
 ```bash
 # Перегляд згенерованого квесту
@@ -119,10 +84,10 @@ export CHALLENGE_FILE=./test_game.ta
 set -e
 
 # 1. Генерація TextWorld гри
-tw-make tw-simple --seed 42 --output my_game.z8 --json my_game.json
+tw-make tw-simple --seed 1 --output my_game.z8 --json my_game.json
 
 # 2. Конвертація у TermAdventure формат (з явним вказанням мапінгу)
-./tw2ta --mapping tw2ta/tw-simple_mapping.yaml my_game.json
+./tw2ta --mapping tw-simple_mapping.yaml my_game.json
 
 # 3. Перегляд
 ./termadventure --print my_game.ta
