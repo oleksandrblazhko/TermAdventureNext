@@ -1,0 +1,388 @@
+game_dir: $HOME/.tw2ta_game
+inventory_dir: '~'
+commands:
+  cd:
+    full: cd
+    description: '`cd` змінює поточний каталог, що є прямим аналогом переходу до іншої
+      кімнати. `cd ..` для руху назад.'
+    textworld_action: go
+    game_role: '`cd` змінює поточний каталог, що є прямим аналогом переходу до іншої
+      кімнати. `cd ..` для руху назад.'
+  ls:
+    full: ls -la
+    description: '`ls -la` показує детальний вміст поточного каталогу (кімнати), включаючи
+      приховані файли (стан).'
+    textworld_action: look
+    game_role: '`ls -la` показує детальний вміст поточного каталогу (кімнати), включаючи
+      приховані файли (стан).'
+  rm:
+    full: rm .closed
+    description: Двері/контейнери позначаються "файлом-замком". `rm .closed` видаляє
+      цей замок, що імітує відкриття.
+    textworld_action: open
+    game_role: Двері/контейнери позначаються "файлом-замком". `rm .closed` видаляє
+      цей замок, що імітує відкриття.
+  touch:
+    full: touch .closed
+    description: '`touch .closed` створює "файл-замок", що імітує закриття дверей/контейнера.'
+    textworld_action: close
+    game_role: '`touch .closed` створює "файл-замок", що імітує закриття дверей/контейнера.'
+  mv:
+    full: mv
+    description: '`mv контейнер/предмет ~/` - переміщення файлу з каталогу-контейнера
+      в домашній каталог (інвентар).'
+    textworld_action: take from
+    game_role: '`mv контейнер/предмет ~/` - переміщення файлу з каталогу-контейнера
+      в домашній каталог (інвентар).'
+world:
+  rooms:
+    bedroom:
+      name: Спальня (Bedroom)
+      bash_path: $HOME/.tw2ta_game/bedroom/
+      commands:
+      - cd bedroom
+      - pwd
+      - ls
+    kitchen:
+      name: Кухня (Kitchen)
+      bash_path: $HOME/.tw2ta_game/kitchen/
+      commands:
+      - cd kitchen
+      - pwd
+      - ls
+    living_room:
+      name: Вітальня (Living Room)
+      bash_path: $HOME/.tw2ta_game/living_room/
+      commands:
+      - cd living_room
+      - pwd
+      - ls
+    bathroom:
+      name: Ванна (Bathroom)
+      bash_path: $HOME/.tw2ta_game/bathroom/
+      commands:
+      - cd bathroom
+      - pwd
+      - ls
+    backyard:
+      name: Задній двір (Backyard)
+      bash_path: $HOME/.tw2ta_game/backyard/
+      commands:
+      - cd backyard
+      - pwd
+      - ls
+    garden:
+      name: Сад (Garden)
+      bash_path: $HOME/.tw2ta_game/garden/
+      commands:
+      - cd garden
+      - pwd
+      - ls
+  doors:
+    wooden_door:
+      name: Дерев'яні двері (Wooden Door)
+      connects: bedroom ↔ kitchen
+      bash_path: $HOME/.tw2ta_game/door_wooden_door.state
+      states:
+        locked:
+          content: locked
+          check: cat $HOME/.tw2ta_game/door_wooden_door.state
+        closed:
+          content: closed
+          command: echo "closed" > $HOME/.tw2ta_game/door_wooden_door.state
+        open:
+          content: open
+          command: echo "open" > $HOME/.tw2ta_game/door_wooden_door.state
+      unlock:
+        command: test -f ~/old_key && echo "closed" > $HOME/.tw2ta_game/door_wooden_door.state
+          && touch $HOME/.tw2ta_game/door_wooden_door.unlocked
+        requires: old_key
+      flag_unlocked: $HOME/.tw2ta_game/door_wooden_door.unlocked
+    screen_door:
+      name: Двері з сіткою (Screen Door)
+      connects: kitchen ↔ backyard
+      bash_path: $HOME/.tw2ta_game/door_screen_door.state
+      states:
+        closed:
+          content: closed
+          command: echo "closed" > $HOME/.tw2ta_game/door_screen_door.state
+        open:
+          content: open
+          command: echo "open" > $HOME/.tw2ta_game/door_screen_door.state
+  containers:
+    chest_drawer:
+      name: Шухляда (Chest Drawer)
+      location: bedroom
+      bash_path: $HOME/.tw2ta_game/bedroom/chest_drawer/
+      states:
+        closed:
+          flag: .closed
+          open_command: rm .closed && touch .open
+        open:
+          flag: .open
+          close_command: touch .closed && rm .open
+    antique_trunk:
+      name: Старовинний сундук (Antique Trunk)
+      location: bedroom
+      bash_path: $HOME/.tw2ta_game/bedroom/antique_trunk/
+      states:
+        closed:
+          flag: .closed
+          open_command: rm .closed && touch .open
+    refrigerator:
+      name: Холодильник (Refrigerator)
+      location: kitchen
+      bash_path: $HOME/.tw2ta_game/kitchen/refrigerator/
+      states:
+        closed:
+          flag: .closed
+          open_command: rm .closed && touch .open
+    toilet:
+      name: Унітаз (Toilet)
+      location: bathroom
+      bash_path: $HOME/.tw2ta_game/bathroom/toilet/
+      states:
+        closed:
+          flag: .closed
+          open_command: rm .closed && touch .open
+    bath:
+      name: Ванна (Bath)
+      location: bathroom
+      bash_path: $HOME/.tw2ta_game/bathroom/bath/
+      states:
+        closed:
+          flag: .closed
+          open_command: rm .closed && touch .open
+  supporters:
+    king_size_bed:
+      name: Ліжко king-size (King-Size Bed)
+      location: bedroom
+      bash_path: $HOME/.tw2ta_game/bedroom/king-size_bed/
+    counter:
+      name: Стільниця (Counter)
+      location: kitchen
+      bash_path: $HOME/.tw2ta_game/kitchen/counter/
+    stove:
+      name: Плита (Stove)
+      location: kitchen
+      bash_path: $HOME/.tw2ta_game/kitchen/stove/
+    kitchen_island:
+      name: Кухонний острів (Kitchen Island)
+      location: kitchen
+      bash_path: $HOME/.tw2ta_game/kitchen/kitchen_island/
+    sink:
+      name: Раковина (Sink)
+      location: bathroom
+      bash_path: $HOME/.tw2ta_game/bathroom/sink/
+    couch:
+      name: Диван (Couch)
+      location: living_room
+      bash_path: $HOME/.tw2ta_game/living_room/couch/
+    low_table:
+      name: Журнальний столик (Low Table)
+      location: living_room
+      bash_path: $HOME/.tw2ta_game/living_room/low_table/
+    tv:
+      name: Телевізор (TV)
+      location: living_room
+      bash_path: $HOME/.tw2ta_game/living_room/tv/
+    bbq:
+      name: Барбекю (BBQ)
+      location: backyard
+      bash_path: $HOME/.tw2ta_game/backyard/bbq/
+    patio_table:
+      name: Садовий столик (Patio Table)
+      location: backyard
+      bash_path: $HOME/.tw2ta_game/backyard/patio_table/
+    set_of_chairs:
+      name: Набір стільців (Set of Chairs)
+      location: backyard
+      bash_path: $HOME/.tw2ta_game/backyard/set_of_chairs/
+  items:
+    old_key:
+      name: Старий ключ (Old Key)
+      type: key
+      initial_location: chest_drawer
+      bash_path: $HOME/.tw2ta_game/bedroom/chest_drawer/old_key
+      inventory_path: ~/old_key
+      take_command: mv chest_drawer/old_key ~/
+      unlocks: wooden_door
+    milk:
+      name: Молоко (Milk)
+      type: food
+      initial_location: refrigerator
+      bash_path: $HOME/.tw2ta_game/kitchen/refrigerator/milk
+      inventory_path: ~/milk
+      take_command: mv refrigerator/milk ~/
+    apple:
+      name: Яблуко (Apple)
+      type: food
+      initial_location: refrigerator
+      bash_path: $HOME/.tw2ta_game/kitchen/refrigerator/apple
+      inventory_path: ~/apple
+      take_command: mv refrigerator/apple ~/
+      put_target: stove
+      win_condition: true
+    note:
+      name: Записка (Note)
+      type: object
+      initial_location: sink
+      bash_path: $HOME/.tw2ta_game/bathroom/sink/note
+      read_command: less sink/note
+    toothbrush:
+      name: Зубна щітка (Toothbrush)
+      type: object
+      initial_location: bath
+      bash_path: $HOME/.tw2ta_game/bathroom/bath/toothbrush
+    soap_bar:
+      name: Шматок мила (Soap Bar)
+      type: object
+      initial_location: low_table
+      bash_path: $HOME/.tw2ta_game/living_room/low_table/soap_bar
+    remote:
+      name: Пульт (Remote)
+      type: object
+      initial_location: kitchen_island
+      bash_path: $HOME/.tw2ta_game/kitchen/kitchen_island/remote
+    tomato_plant:
+      name: Кущ помідорів (Tomato Plant)
+      type: food
+      initial_location: garden
+      bash_path: $HOME/.tw2ta_game/garden/tomato_plant
+    bell_pepper:
+      name: Перець (Bell Pepper)
+      type: food
+      initial_location: garden
+      bash_path: $HOME/.tw2ta_game/garden/bell_pepper
+    lettuce:
+      name: Салат-латук (Lettuce)
+      type: food
+      initial_location: garden
+      bash_path: $HOME/.tw2ta_game/garden/lettuce
+    shovel:
+      name: Лопата (Shovel)
+      type: object
+      initial_location: garden
+      bash_path: $HOME/.tw2ta_game/garden/shovel
+  meta_files:
+    current_room:
+      name: Поточна кімната
+      bash_path: $HOME/.tw2ta_game/current_room
+    doors_log:
+      name: Лог дій з дверима
+      bash_path: $HOME/.tw2ta_game/doors.log
+    movement_log:
+      name: Лог переміщень
+      bash_path: $HOME/.tw2ta_game/movement.log
+    inventory_log:
+      name: Лог інвентарю
+      bash_path: $HOME/.tw2ta_game/inventory.log
+    win_condition:
+      name: Прапорець перемоги
+      bash_path: $HOME/.tw2ta_game/win_condition
+      create_command: touch win_condition
+      check_command: test -f win_condition
+action_templates:
+  go/east:
+    description: Йти на east
+    textworld_example: go east
+    player_command: echo "{room}" > {current_room}
+    test: test "$(cat {current_room})" = "{room}"
+    precmd: mkdir -p {rooms_dir}
+    postcmd: echo "Moved to {room_name} at $(date)" >> {movement_log}
+  go/west:
+    description: Йти на west
+    textworld_example: go west
+    player_command: echo "{room}" > {current_room}
+    test: test "$(cat {current_room})" = "{room}"
+    precmd: mkdir -p {rooms_dir}
+    postcmd: echo "Moved to {room_name} at $(date)" >> {movement_log}
+  go/north:
+    description: Йти на north
+    textworld_example: go north
+    player_command: echo "{room}" > {current_room}
+    test: test "$(cat {current_room})" = "{room}"
+    precmd: mkdir -p {rooms_dir}
+    postcmd: echo "Moved to {room_name} at $(date)" >> {movement_log}
+  go/south:
+    description: Йти на south
+    textworld_example: go south
+    player_command: echo "{room}" > {current_room}
+    test: test "$(cat {current_room})" = "{room}"
+    precmd: mkdir -p {rooms_dir}
+    postcmd: echo "Moved to {room_name} at $(date)" >> {movement_log}
+  look:
+    description: Оглянутись у кімнаті
+    textworld_example: look
+    player_command: ls -la {game_dir}/{room}/
+    test: 'true'
+  inventory:
+    description: Переглянути інвентар
+    textworld_example: inventory
+    player_command: ls ~/
+    test: 'true'
+  examine:
+    description: '`less` або `cat` дозволяє переглянути вміст файлу (опис елемента),
+      але `examine` в грі дає більш структуровану інформацію. `cat` для коротких,
+      `less` для довгих.'
+    textworld_example: ''
+    player_command: cat {game_dir}/{room}/{element} || cat ~/{element}
+    test: 'true'
+  open/d:
+    description: Двері/контейнери позначаються "файлом-замком". `rm .closed` видаляє
+      цей замок, що імітує відкриття.
+    textworld_example: ''
+    player_command: echo "open" > {game_dir}/{door}.state
+    test: test "$(cat {game_dir}/{door}.state)" = "open"
+    precmd: echo "closed" > {game_dir}/{door}.state
+    postcmd: 'echo "{door}: open" >> {doors_log}'
+  close/d:
+    description: '`touch .closed` створює "файл-замок", що імітує закриття дверей/контейнера.'
+    textworld_example: ''
+    player_command: echo "closed" > {game_dir}/{door}.state
+    test: test "$(cat {game_dir}/{door}.state)" = "closed"
+  open/c:
+    description: Той самий механізм, що і для дверей.
+    textworld_example: ''
+    player_command: rm {game_dir}/{room}/{container}/.closed
+    test: test ! -f {game_dir}/{room}/{container}/.closed
+    precmd: mkdir -p {game_dir}/{room}/{container} && touch {game_dir}/{room}/{container}/.closed
+    postcmd: touch {game_dir}/{room}/{container}/.open
+  close/c:
+    description: Той самий механізм, що і для дверей.
+    textworld_example: ''
+    player_command: touch {game_dir}/{room}/{container}/.closed
+    test: test -f {game_dir}/{room}/{container}/.closed
+    postcmd: rm -f {game_dir}/{room}/{container}/.open
+  take/o:
+    description: '`mv ./об''єкт ~/` - взяти предмет, що вільно лежить у кімнаті.'
+    textworld_example: ''
+    player_command: mv {game_dir}/{room}/{item} ~/
+    test: test -f ~/{item}
+    precmd: mkdir -p {game_dir}/{room}
+    postcmd: echo '{item} taken' >> {inventory_log}
+  drop/o:
+    description: '`mv ~/об''єкт ./` - кинути предмет з інвентаря в поточну кімнату.'
+    textworld_example: ''
+    player_command: mv ~/{item} {game_dir}/{room}/
+    test: test -f {game_dir}/{room}/{item} && test ! -f ~/{item}
+    postcmd: echo '{item} dropped' >> {movement_log}
+  cook:
+    description: Прямої аналогії немає. "Приготування" може бути імітоване створенням
+      нового файлу (`touch`) або виконанням скрипта, який перевіряє умови.
+    textworld_example: ''
+    player_command: touch {game_dir}/{room}/{surface}/cooked_{item}
+    test: test -f {game_dir}/{room}/{surface}/cooked_{item}
+  eat:
+    description: '`rm ~/apple` - видалення файлу-їжі з інвентаря імітує його поїдання.'
+    textworld_example: ''
+    player_command: rm ~/{item}
+    test: test ! -f ~/{item}
+template_vars:
+  game_dir: $HOME/.tw2ta_game
+  inventory_log: $HOME/.tw2ta_game/inventory.log
+  doors_log: $HOME/.tw2ta_game/doors.log
+  movement_log: $HOME/.tw2ta_game/movement.log
+  current_room: $HOME/.tw2ta_game/current_room
+  win_condition: $HOME/.tw2ta_game/win_condition
+  rooms_dir: $HOME/.tw2ta_game/rooms
