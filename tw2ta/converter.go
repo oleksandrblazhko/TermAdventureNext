@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -66,7 +65,8 @@ func ConvertToTA(gs *GameState, challengeName string, mappingPath string) (strin
 // loadMappingFile - завантажує YAML-мапінг
 func loadMappingFile(mappingPath string) *BashMapping {
 	if mappingPath != "" {
-		if mapping, err := LoadMappingFromFile(mappingPath); err == nil {
+		mapping, err := LoadMappingFromFile(mappingPath)
+		if err == nil {
 			fmt.Fprintf(os.Stderr, "✅ Завантажено мапінг: %s (%d дій)\n", mappingPath, len(mapping.Actions))
 			return mapping
 		}
