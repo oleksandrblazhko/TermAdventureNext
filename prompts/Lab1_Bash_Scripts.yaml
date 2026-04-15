@@ -1,0 +1,251 @@
+actions:
+  - id: "1.1."
+    player_action: "look"
+    bash_command: "ls"
+    precmd: |
+      mkdir -p $HOME/test_room
+      cd $HOME/test_room
+      touch item1.txt
+      touch item2.txt
+    test: |
+      ls | grep item1.txt && ls | grep item2.txt
+    postcmd: |
+      rm -rf $HOME/test_room
+      cd $HOME
+  - id: "1.2."
+    player_action: "go <direction>"
+    bash_command: "cd"
+    precmd: |
+      mkdir -p $HOME/room_A
+      mkdir -p $HOME/room_A/north_room
+      cd $HOME/room_A
+    test: |
+      cd north_room && test "$(pwd)" = "$HOME/room_A/north_room"
+    postcmd: |
+      rm -rf $HOME/room_A
+      cd $HOME
+  - id: "1.3."
+    player_action: "inventory"
+    bash_command: "ls ~"
+    precmd: |
+      touch $HOME/item_in_inv.txt
+    test: |
+      ls $HOME | grep item_in_inv.txt
+    postcmd: |
+      rm -f $HOME/item_in_inv.txt
+  - id: "2.1."
+    player_action: "examine <object>"
+    bash_command: "cat або less"
+    precmd: |
+      echo "This is a note." > $HOME/note.txt
+    test: |
+      cat $HOME/note.txt | grep "This is a note."
+    postcmd: |
+      rm -f $HOME/note.txt
+  - id: "3.1."
+    player_action: "examine <object>"
+    bash_command: "cat або less"
+    precmd: |
+      echo "This is a key description." > $HOME/old_key.txt
+    test: |
+      cat $HOME/old_key.txt | grep "This is a key description."
+    postcmd: |
+      rm -f $HOME/old_key.txt
+  - id: "3.2."
+    player_action: "drop <object>"
+    bash_command: "mv"
+    precmd: |
+      mkdir -p $HOME/current_room
+      touch $HOME/item_to_drop.txt
+      cd $HOME/current_room
+    test: |
+      mv $HOME/item_to_drop.txt . && test -f item_to_drop.txt && test ! -f $HOME/item_to_drop.txt
+    postcmd: |
+      rm -rf $HOME/current_room
+      rm -f $HOME/item_to_drop.txt
+      cd $HOME
+  - id: "4.1."
+    player_action: "examine <thing>"
+    bash_command: "cat або less"
+    precmd: |
+      echo "This is a kitchen island." > $HOME/kitchen_island.txt
+    test: |
+      cat $HOME/kitchen_island.txt | grep "This is a kitchen island."
+    postcmd: |
+      rm -f $HOME/kitchen_island.txt
+  - id: "5.1."
+    player_action: "open <container>"
+    bash_command: "rm .closed"
+    precmd: |
+      mkdir -p $HOME/refrigerator
+      touch $HOME/refrigerator/.closed
+      cd $HOME/refrigerator
+    test: |
+      rm .closed && test ! -f .closed
+    postcmd: |
+      rm -rf $HOME/refrigerator
+      cd $HOME
+  - id: "5.2."
+    player_action: "close <container>"
+    bash_command: "touch .closed"
+    precmd: |
+      mkdir -p $HOME/refrigerator
+      cd $HOME/refrigerator
+    test: |
+      touch .closed && test -f .closed
+    postcmd: |
+      rm -rf $HOME/refrigerator
+      cd $HOME
+  - id: "5.3."
+    player_action: "unlock <container> with <key>"
+    bash_command: "mv key . та rm .locked"
+    precmd: |
+      mkdir -p $HOME/chest_drawer
+      touch $HOME/chest_drawer/.locked
+      touch $HOME/old_key
+      cd $HOME/chest_drawer
+    test: |
+      mv $HOME/old_key . && rm .locked && test ! -f .locked
+    postcmd: |
+      rm -rf $HOME/chest_drawer
+      rm -f $HOME/old_key
+      cd $HOME
+  - id: "5.4."
+    player_action: "lock <container> with <key>"
+    bash_command: "mv key . та touch .locked"
+    precmd: |
+      mkdir -p $HOME/chest_drawer
+      touch $HOME/old_key
+      cd $HOME/chest_drawer
+    test: |
+      mv $HOME/old_key . && touch .locked && test -f .locked
+    postcmd: |
+      rm -rf $HOME/chest_drawer
+      rm -f $HOME/old_key
+      cd $HOME
+  - id: "5.5."
+    player_action: "take <object> from <container>"
+    bash_command: "mv container/object ~/"
+    precmd: |
+      mkdir -p $HOME/refrigerator
+      echo "apple content" > $HOME/refrigerator/apple
+      cd $HOME/refrigerator
+    test: |
+      mv apple $HOME/ && test -f $HOME/apple && test ! -f apple
+    postcmd: |
+      rm -rf $HOME/refrigerator
+      rm -f $HOME/apple
+      cd $HOME
+  - id: "5.6."
+    player_action: "insert <object> into <container>"
+    bash_command: "mv ~/object container/"
+    precmd: |
+      mkdir -p $HOME/refrigerator
+      echo "apple content" > $HOME/apple
+      cd $HOME/refrigerator
+    test: |
+      mv $HOME/apple . && test -f apple && test ! -f $HOME/apple
+    postcmd: |
+      rm -rf $HOME/refrigerator
+      rm -f $HOME/apple
+      cd $HOME
+  - id: "6.1."
+    player_action: "take <object> from <supporter>"
+    bash_command: "mv supporter/object ~/"
+    precmd: |
+      mkdir -p $HOME/couch
+      echo "milk content" > $HOME/couch/milk
+      cd $HOME/couch
+    test: |
+      mv milk $HOME/ && test -f $HOME/milk && test ! -f milk
+    postcmd: |
+      rm -rf $HOME/couch
+      rm -f $HOME/milk
+      cd $HOME
+  - id: "6.2."
+    player_action: "put <object> on <supporter>"
+    bash_command: "mv ~/object supporter/"
+    precmd: |
+      mkdir -p $HOME/stove
+      echo "milk content" > $HOME/milk
+      cd $HOME/stove
+    test: |
+      mv $HOME/milk . && test -f milk && test ! -f $HOME/milk
+    postcmd: |
+      rm -rf $HOME/stove
+      rm -f $HOME/milk
+      cd $HOME
+  - id: "7.1."
+    player_action: "open <door>"
+    bash_command: "rm door/.closed"
+    precmd: |
+      mkdir -p $HOME/wooden_door
+      touch $HOME/wooden_door/.closed
+      cd $HOME/wooden_door
+    test: |
+      rm .closed && test ! -f .closed
+    postcmd: |
+      rm -rf $HOME/wooden_door
+      cd $HOME
+  - id: "7.2."
+    player_action: "close <door>"
+    bash_command: "touch door/.closed"
+    precmd: |
+      mkdir -p $HOME/wooden_door
+      cd $HOME/wooden_door
+    test: |
+      touch .closed && test -f .closed
+    postcmd: |
+      rm -rf $HOME/wooden_door
+      cd $HOME
+  - id: "7.3."
+    player_action: "unlock <door> with <key>"
+    bash_command: "mv key door/ та rm door/.locked"
+    precmd: |
+      mkdir -p $HOME/wooden_door
+      touch $HOME/wooden_door/.locked
+      touch $HOME/old_key
+      cd $HOME/wooden_door
+    test: |
+      mv $HOME/old_key . && rm .locked && test ! -f .locked
+    postcmd: |
+      rm -rf $HOME/wooden_door
+      rm -f $HOME/old_key
+      cd $HOME
+  - id: "7.4."
+    player_action: "lock <door> with <key>"
+    bash_command: "mv key door/ та touch door/.locked"
+    precmd: |
+      mkdir -p $HOME/wooden_door
+      touch $HOME/old_key
+      cd $HOME/wooden_door
+    test: |
+      mv $HOME/old_key . && touch .locked && test -f .locked
+    postcmd: |
+      rm -rf $HOME/wooden_door
+      rm -f $HOME/old_key
+      cd $HOME
+  - id: "8.1."
+    player_action: "eat <food>"
+    bash_command: "rm food_item"
+    precmd: |
+      touch $HOME/apple
+    test: |
+      rm $HOME/apple && test ! -f $HOME/apple
+    postcmd: |
+      # Nothing to remove if successful.
+      # If test fails, it might leave the file, so clean up anyway.
+      rm -f $HOME/apple
+  - id: "9.1."
+    player_action: "take <object>"
+    bash_command: "mv object ~/"
+    precmd: |
+      mkdir -p $HOME/current_room
+      touch $HOME/current_room/lettuce
+      cd $HOME/current_room
+    test: |
+      mv lettuce $HOME/ && test -f $HOME/lettuce && test ! -f lettuce
+    postcmd: |
+      rm -rf $HOME/current_room
+      rm -f $HOME/lettuce
+      cd $HOME
