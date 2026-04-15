@@ -1,6 +1,5 @@
 # Person
-Раніше ти виконав ланцюжок завдань,
-останнім з яких було завдання - prompts\prompt_3_TextWord_Bash_Mapping.md
+Раніше ти виконав ланцюжок завдань, останнім з яких було завдання - prompts\prompt_4_Bash_Scripts.md
 
 # Task
 

@@ -158,17 +158,14 @@ func LoadMappingFromPaths(searchPaths []string) *BashMapping {
 		if _, err := os.Stat(path); err == nil {
 			mapping, err := LoadMappingFromFile(path)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "⚠️  Помилка читання %s: %v
-", path, err)
+				fmt.Fprintf(os.Stderr, "⚠️  Помилка читання %s: %v\n", path, err)
 				continue
 			}
-			fmt.Fprintf(os.Stderr, "✅ Завантажено мапінг: %s (%d дій)
-", path, len(mapping.Actions))
+			fmt.Fprintf(os.Stderr, "✅ Завантажено мапінг: %s (%d дій)\n", path, len(mapping.Actions))
 			return mapping
 		}
 	}
-	fmt.Fprintf(os.Stderr, "⚠️  lab1_mapping.yaml не знайдено, використовуємо вбудовані правила
-")
+	fmt.Fprintf(os.Stderr, "⚠️  lab1_mapping.yaml не знайдено, використовуємо вбудовані правила\n")
 	return nil
 }
 
