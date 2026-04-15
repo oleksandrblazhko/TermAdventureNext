@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v2"
@@ -223,7 +224,6 @@ func generateFallbackCommands(gs *GameState, action ActionStep) (test, precmd, p
 }
 
 // generateFinalLevel - створює фінальний рівень
-// ... (без змін)
 func generateFinalLevel(gs *GameState) string {
 	totalReward := 0
 	for _, quest := range gs.Quests {
@@ -251,37 +251,89 @@ func generateFinalLevel(gs *GameState) string {
 }
 
 // renderLevel - рендерить рівень у формат .ta
-// ... (без змін)
 func renderLevel(level LevelData) string {
 	var buf bytes.Buffer
 
-	fmt.Fprintf(&buf, "name: %s\n", yamlQuote(level.Name))
-	fmt.Fprintf(&buf, "test: %s\n", yamlQuote(level.Test))
-	if level.PreCmd != "" {
-		fmt.Fprintf(&buf, "precmd: %s\n", yamlQuote(level.PreCmd))
-	}
-	if level.PostCmd != "" {
-		fmt.Fprintf(&buf, "postcmd: %s\n", yamlQuote(level.PostCmd))
+	fmt.Fprintf(&buf, "name: %s\n", level.Name)
+	formatYamlField(&buf, "test", level.Test)
+	formatYamlField(&buf, "precmd", level.PreCmd)
+	formatYamlField(&buf, "postcmd", level.PostCmd)
+	formatYamlField(&buf, "postprintcmd", level.PostPrintCmd)
+
+	if level.TimeLimit > 0 {
+		fmt.Fprintf(&buf, "timelimit: %d\n", level.TimeLimit)
 	}
 	if len(level.NextLevels) > 0 {
 		fmt.Fprintf(&buf, "next: [%s]\n", strings.Join(level.NextLevels, ", "))
 	}
+	if level.BackgroundJobs {
+		fmt.Fprintf(&buf, "bgjobs: true\n")
+	}
 
-	buf.WriteString("\n\n")
+	buf.WriteString("\n") // Один перенос рядка перед текстом
 	buf.WriteString(level.Text)
 
 	return buf.String()
 }
 
+// formatYamlField - форматує поле YAML, обробляючи багаторядкові значення
+func formatYamlField(buf *bytes.Buffer, key, value string) {
+	if value == "" {
+		return
+	}
+	if strings.Contains(value, "\n") {
+		fmt.Fprintf(buf, "%s: |\n", key)
+		for _, line := range strings.Split(strings.TrimRight(value, "\n"), "\n") {
+			fmt.Fprintf(buf, "  %s\n", line)
+		}
+	} else {
+		fmt.Fprintf(buf, "%s: %s\n", key, yamlQuote(value))
+	}
+}
 
+// yamlQuote - безпечно квотує значення для YAML
 func yamlQuote(s string) string {
 	s = strings.TrimSpace(s)
-	if !strings.ContainsAny(s, ":'\"{}[]#") {
+	if !needsQuoting(s) {
 		return s
 	}
-	data, _ := yaml.Marshal(s)
+	data, err := yaml.Marshal(s)
+	if err != nil {
+		return `"` + strings.ReplaceAll(s, `"`, `\"`) + `"`
+	}
 	return strings.TrimSpace(string(data))
 }
+
+// needsQuoting — перевіряє чи значення потребує YAML-квотування
+func needsQuoting(s string) bool {
+	if s == "" {
+		return true // Пусті рядки теж треба квотувати
+	}
+	// Спецсимволи YAML
+	specialChars := []string{":", "{", "}", "[", "]", ",", "&", "*", "#", "?", "|", "-", "<", ">", "=", "!", "%", "@", "`"}
+	if strings.ContainsAny(s, specialChars) {
+		return true
+	}
+	// Починається або закінчується пробілом
+	if s[0] == ' ' || s[len(s)-1] == ' ' {
+		return true
+	}
+	// Схоже на число/булеве
+	if s == "true" || s == "false" || s == "null" || s == "TRUE" || s == "FALSE" || s == "NULL" {
+		return true
+	}
+	
+    // Check if it can be parsed as a number
+    if _, err := strconv.ParseFloat(s, 64); err == nil {
+        return true
+    }
+    if _, err := strconv.ParseInt(s, 10, 64); err == nil {
+        return true
+    }
+
+	return false
+}
+
 
 // generateLevelText, getActionTitle, getActionInstructions - без суттєвих змін
 // ...
