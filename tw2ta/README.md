@@ -34,7 +34,7 @@ tw-make tw-simple --seed 1 --output test_game.z8 --goal brief --rewards dense
 
 ```bash
 # З явною назвою мапінгу (для інших типів ігор)
-./tw2ta/tw2ta --mapping ./tw2ta/tw-simple_mapping.yaml test_game.json --output my_quest.ta 
+./tw2ta/tw2ta --mapping ./prompts/Lab1_Bash_Scripts.yaml ./prompts/test_game_1.json --output test_game_1.ta 
 
 ```
 
@@ -68,7 +68,7 @@ go build -ldflags "-X main.encryption_key=my_secret_key" -o termadventure
 ./termadventure --print test_game.ta
 
 # Запуск через challenger.sh
-export CHALLENGE_FILE=./test_game.ta
+export CHALLENGE_FILE=./test_game_1.ta
 ./challenger.sh
 ```
 

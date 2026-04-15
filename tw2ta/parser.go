@@ -8,11 +8,18 @@ import (
 
 // TextWorldJSON - коренева структура для JSON-файлу TextWorld
 type TextWorldJSON struct {
-	Version int            `json:"version"`
-	World   []Predicate    `json:"world"`
-	Grammar Grammar        `json:"grammar"`
-	Quests  []Quest        `json:"quests"`
-	Infos   []EntityInfoPair `json:"infos"`
+	Version   int            `json:"version"`
+	World     []Predicate    `json:"world"`
+	Grammar   Grammar        `json:"grammar"`
+	Quests    []Quest        `json:"quests"`
+	Infos     []EntityInfoPair `json:"infos"`
+	Metadata  Metadata       `json:"metadata"`
+	Objective string         `json:"objective"`
+}
+
+// Metadata - метадані гри
+type Metadata struct {
+	Walkthrough []string `json:"walkthrough"`
 }
 
 // Predicate - предикат стану світу (at, closed, locked, тощо)

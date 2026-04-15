@@ -1,0 +1,994 @@
+name: intro
+test: "true"
+precmd: 'echo ''Початок челенджу: test_game_1'''
+next: [step_01]
+
+
+# Ласкаво просимо до TextWorld!
+
+**Челендж:** test_game_1
+**Тема:** 
+
+Ви у кімнаті **bedroom** (bedroom).
+
+Тут є:
+- **chest drawer** (зачинений)
+- **antique trunk** (зачинений)
+
+Поверхні:
+- **king-size bed**
+
+Двері:
+- до bedroom через **wooden door** (замкнені)
+
+
+**Ваше завдання:** Виконуйте кроки послідовно. Кожен крок — це окремий рівень.
+
+Введіть "help" щоб побачити доступні команди.
+
+--------------------
+
+name: step_01
+test: test ! -f $HOME/.tw2ta_game/c_1/.closed
+precmd: mkdir -p $HOME/.tw2ta_game/c_1 && touch $HOME/.tw2ta_game/c_1/.closed
+postcmd: touch $HOME/.tw2ta_game/c_1/.open
+next: [step_02]
+
+
+## Крок 1/37: Відчиніть контейнер
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Перед вами **antique trunk** — він зачинений.
+Всередині щось є...
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+rm $HOME/.tw2ta_game/c_1/.closed
+```
+
+*Оригінальна команда TextWorld:* `open c_1`*
+
+
+--------------------
+
+name: step_02
+test: test ! -f $HOME/.tw2ta_game/c_1/.closed
+precmd: mkdir -p $HOME/.tw2ta_game/c_1 && touch $HOME/.tw2ta_game/c_1/.closed
+postcmd: touch $HOME/.tw2ta_game/c_1/.open
+next: [step_03]
+
+
+## Крок 2/37: Відчиніть контейнер
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Перед вами **antique trunk** — він зачинений.
+Всередині щось є...
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+rm $HOME/.tw2ta_game/c_1/.closed
+```
+
+*Оригінальна команда TextWorld:* `open c_1`*
+
+
+--------------------
+
+name: step_03
+test: test -f ~/k_0} from {c_1
+precmd: mkdir -p $HOME/.tw2ta_game/c_1 && touch $HOME/.tw2ta_game/c_1/k_0} from {c_1
+postcmd: echo 'k_0} from {c_1 taken' >> $HOME/.tw2ta_game/inventory.log
+next: [step_04]
+
+
+## Крок 3/37: Візьміть предмет
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Всередині **antique trunk** ви бачите **k_0} from {c_1**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+cp $HOME/.tw2ta_game/c_1/k_0} from {c_1 ~/
+```
+
+*Оригінальна команда TextWorld:* `take k_0 from c_1`*
+
+
+--------------------
+
+name: step_04
+test: test ! -f $HOME/.tw2ta_game/c_1/.closed
+precmd: mkdir -p $HOME/.tw2ta_game/c_1 && touch $HOME/.tw2ta_game/c_1/.closed
+postcmd: touch $HOME/.tw2ta_game/c_1/.open
+next: [step_05]
+
+
+## Крок 4/37: Відчиніть контейнер
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Перед вами **antique trunk** — він зачинений.
+Всередині щось є...
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+rm $HOME/.tw2ta_game/c_1/.closed
+```
+
+*Оригінальна команда TextWorld:* `open c_1`*
+
+
+--------------------
+
+name: step_05
+test: test -f ~/k_0} from {c_1
+precmd: mkdir -p $HOME/.tw2ta_game/c_1 && touch $HOME/.tw2ta_game/c_1/k_0} from {c_1
+postcmd: echo 'k_0} from {c_1 taken' >> $HOME/.tw2ta_game/inventory.log
+next: [step_06]
+
+
+## Крок 5/37: Візьміть предмет
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Всередині **antique trunk** ви бачите **k_0} from {c_1**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+cp $HOME/.tw2ta_game/c_1/k_0} from {c_1 ~/
+```
+
+*Оригінальна команда TextWorld:* `take k_0 from c_1`*
+
+
+--------------------
+
+name: step_06
+test: test "$(cat $HOME/.tw2ta_game/door_d_0} with {k_0.state)" = "closed"
+precmd: echo 'locked' > $HOME/.tw2ta_game/door_d_0} with {k_0.state
+postcmd: touch $HOME/.tw2ta_game/door_d_0} with {k_0.unlocked
+next: [step_07]
+
+
+## Крок 6/37: Відімкніть двері
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'closed' > $HOME/.tw2ta_game/door_d_0} with {k_0.state
+```
+
+*Оригінальна команда TextWorld:* `unlock d_0 with k_0`*
+
+
+--------------------
+
+name: step_07
+test: test ! -f $HOME/.tw2ta_game/c_1/.closed
+precmd: mkdir -p $HOME/.tw2ta_game/c_1 && touch $HOME/.tw2ta_game/c_1/.closed
+postcmd: touch $HOME/.tw2ta_game/c_1/.open
+next: [step_08]
+
+
+## Крок 7/37: Відчиніть контейнер
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Перед вами **antique trunk** — він зачинений.
+Всередині щось є...
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+rm $HOME/.tw2ta_game/c_1/.closed
+```
+
+*Оригінальна команда TextWorld:* `open c_1`*
+
+
+--------------------
+
+name: step_08
+test: test -f ~/k_0} from {c_1
+precmd: mkdir -p $HOME/.tw2ta_game/c_1 && touch $HOME/.tw2ta_game/c_1/k_0} from {c_1
+postcmd: echo 'k_0} from {c_1 taken' >> $HOME/.tw2ta_game/inventory.log
+next: [step_09]
+
+
+## Крок 8/37: Візьміть предмет
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Всередині **antique trunk** ви бачите **k_0} from {c_1**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+cp $HOME/.tw2ta_game/c_1/k_0} from {c_1 ~/
+```
+
+*Оригінальна команда TextWorld:* `take k_0 from c_1`*
+
+
+--------------------
+
+name: step_09
+test: test "$(cat $HOME/.tw2ta_game/door_d_0} with {k_0.state)" = "closed"
+precmd: echo 'locked' > $HOME/.tw2ta_game/door_d_0} with {k_0.state
+postcmd: touch $HOME/.tw2ta_game/door_d_0} with {k_0.unlocked
+next: [step_10]
+
+
+## Крок 9/37: Відімкніть двері
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'closed' > $HOME/.tw2ta_game/door_d_0} with {k_0.state
+```
+
+*Оригінальна команда TextWorld:* `unlock d_0 with k_0`*
+
+
+--------------------
+
+name: step_10
+test: test "$(cat $HOME/.tw2ta_game/door_d_0.state)" = "open"
+precmd: echo 'closed' > $HOME/.tw2ta_game/door_d_0.state
+postcmd: echo 'door d_0 open' >> $HOME/.tw2ta_game/doors.log
+next: [step_11]
+
+
+## Крок 10/37: Відчиніть двері
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+**wooden door** зачинені, але відімкнені. Відчиніть їх.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'open' > $HOME/.tw2ta_game/door_d_0.state
+```
+
+*Оригінальна команда TextWorld:* `open d_0`*
+
+
+--------------------
+
+name: step_11
+test: test ! -f $HOME/.tw2ta_game/c_1/.closed
+precmd: mkdir -p $HOME/.tw2ta_game/c_1 && touch $HOME/.tw2ta_game/c_1/.closed
+postcmd: touch $HOME/.tw2ta_game/c_1/.open
+next: [step_12]
+
+
+## Крок 11/37: Відчиніть контейнер
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Перед вами **antique trunk** — він зачинений.
+Всередині щось є...
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+rm $HOME/.tw2ta_game/c_1/.closed
+```
+
+*Оригінальна команда TextWorld:* `open c_1`*
+
+
+--------------------
+
+name: step_12
+test: test -f ~/k_0} from {c_1
+precmd: mkdir -p $HOME/.tw2ta_game/c_1 && touch $HOME/.tw2ta_game/c_1/k_0} from {c_1
+postcmd: echo 'k_0} from {c_1 taken' >> $HOME/.tw2ta_game/inventory.log
+next: [step_13]
+
+
+## Крок 12/37: Візьміть предмет
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Всередині **antique trunk** ви бачите **k_0} from {c_1**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+cp $HOME/.tw2ta_game/c_1/k_0} from {c_1 ~/
+```
+
+*Оригінальна команда TextWorld:* `take k_0 from c_1`*
+
+
+--------------------
+
+name: step_13
+test: test "$(cat $HOME/.tw2ta_game/door_d_0} with {k_0.state)" = "closed"
+precmd: echo 'locked' > $HOME/.tw2ta_game/door_d_0} with {k_0.state
+postcmd: touch $HOME/.tw2ta_game/door_d_0} with {k_0.unlocked
+next: [step_14]
+
+
+## Крок 13/37: Відімкніть двері
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'closed' > $HOME/.tw2ta_game/door_d_0} with {k_0.state
+```
+
+*Оригінальна команда TextWorld:* `unlock d_0 with k_0`*
+
+
+--------------------
+
+name: step_14
+test: test "$(cat $HOME/.tw2ta_game/door_d_0.state)" = "open"
+precmd: echo 'closed' > $HOME/.tw2ta_game/door_d_0.state
+postcmd: echo 'door d_0 open' >> $HOME/.tw2ta_game/doors.log
+next: [step_15]
+
+
+## Крок 14/37: Відчиніть двері
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+**wooden door** зачинені, але відімкнені. Відчиніть їх.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'open' > $HOME/.tw2ta_game/door_d_0.state
+```
+
+*Оригінальна команда TextWorld:* `open d_0`*
+
+
+--------------------
+
+name: step_15
+test: test "$(cat $HOME/.tw2ta_game/current_room)" = "r_0"
+precmd: mkdir -p $HOME/.tw2ta_game/rooms
+postcmd: echo 'Moved to r_0 at $(date)' >> $HOME/.tw2ta_game/movement.log
+next: [step_16]
+
+
+## Крок 15/37: Йдіть на схід
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Перейдіть до кімнати **bedroom**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'r_0' > $HOME/.tw2ta_game/current_room
+```
+
+*Оригінальна команда TextWorld:* `go east`*
+
+
+--------------------
+
+name: step_16
+test: test ! -f $HOME/.tw2ta_game/c_1/.closed
+precmd: mkdir -p $HOME/.tw2ta_game/c_1 && touch $HOME/.tw2ta_game/c_1/.closed
+postcmd: touch $HOME/.tw2ta_game/c_1/.open
+next: [step_17]
+
+
+## Крок 16/37: Відчиніть контейнер
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Перед вами **antique trunk** — він зачинений.
+Всередині щось є...
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+rm $HOME/.tw2ta_game/c_1/.closed
+```
+
+*Оригінальна команда TextWorld:* `open c_1`*
+
+
+--------------------
+
+name: step_17
+test: test -f ~/k_0} from {c_1
+precmd: mkdir -p $HOME/.tw2ta_game/c_1 && touch $HOME/.tw2ta_game/c_1/k_0} from {c_1
+postcmd: echo 'k_0} from {c_1 taken' >> $HOME/.tw2ta_game/inventory.log
+next: [step_18]
+
+
+## Крок 17/37: Візьміть предмет
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Всередині **antique trunk** ви бачите **k_0} from {c_1**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+cp $HOME/.tw2ta_game/c_1/k_0} from {c_1 ~/
+```
+
+*Оригінальна команда TextWorld:* `take k_0 from c_1`*
+
+
+--------------------
+
+name: step_18
+test: test "$(cat $HOME/.tw2ta_game/door_d_0} with {k_0.state)" = "closed"
+precmd: echo 'locked' > $HOME/.tw2ta_game/door_d_0} with {k_0.state
+postcmd: touch $HOME/.tw2ta_game/door_d_0} with {k_0.unlocked
+next: [step_19]
+
+
+## Крок 18/37: Відімкніть двері
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'closed' > $HOME/.tw2ta_game/door_d_0} with {k_0.state
+```
+
+*Оригінальна команда TextWorld:* `unlock d_0 with k_0`*
+
+
+--------------------
+
+name: step_19
+test: test "$(cat $HOME/.tw2ta_game/door_d_0.state)" = "open"
+precmd: echo 'closed' > $HOME/.tw2ta_game/door_d_0.state
+postcmd: echo 'door d_0 open' >> $HOME/.tw2ta_game/doors.log
+next: [step_20]
+
+
+## Крок 19/37: Відчиніть двері
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+**wooden door** зачинені, але відімкнені. Відчиніть їх.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'open' > $HOME/.tw2ta_game/door_d_0.state
+```
+
+*Оригінальна команда TextWorld:* `open d_0`*
+
+
+--------------------
+
+name: step_20
+test: test "$(cat $HOME/.tw2ta_game/current_room)" = "r_0"
+precmd: mkdir -p $HOME/.tw2ta_game/rooms
+postcmd: echo 'Moved to r_0 at $(date)' >> $HOME/.tw2ta_game/movement.log
+next: [step_21]
+
+
+## Крок 20/37: Йдіть на схід
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Перейдіть до кімнати **bedroom**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'r_0' > $HOME/.tw2ta_game/current_room
+```
+
+*Оригінальна команда TextWorld:* `go east`*
+
+
+--------------------
+
+name: step_21
+test: test "$(cat $HOME/.tw2ta_game/current_room)" = "r_1"
+precmd: mkdir -p $HOME/.tw2ta_game/rooms
+postcmd: echo 'Moved to r_1 at $(date)' >> $HOME/.tw2ta_game/movement.log
+next: [step_22]
+
+
+## Крок 21/37: Йдіть на південь
+
+Ви знаходитесь у кімнаті **kitchen**.
+
+Перейдіть до кімнати **kitchen**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'r_1' > $HOME/.tw2ta_game/current_room
+```
+
+*Оригінальна команда TextWorld:* `go south`*
+
+
+--------------------
+
+name: step_22
+test: test ! -f $HOME/.tw2ta_game/c_1/.closed
+precmd: mkdir -p $HOME/.tw2ta_game/c_1 && touch $HOME/.tw2ta_game/c_1/.closed
+postcmd: touch $HOME/.tw2ta_game/c_1/.open
+next: [step_23]
+
+
+## Крок 22/37: Відчиніть контейнер
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Перед вами **antique trunk** — він зачинений.
+Всередині щось є...
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+rm $HOME/.tw2ta_game/c_1/.closed
+```
+
+*Оригінальна команда TextWorld:* `open c_1`*
+
+
+--------------------
+
+name: step_23
+test: test -f ~/k_0} from {c_1
+precmd: mkdir -p $HOME/.tw2ta_game/c_1 && touch $HOME/.tw2ta_game/c_1/k_0} from {c_1
+postcmd: echo 'k_0} from {c_1 taken' >> $HOME/.tw2ta_game/inventory.log
+next: [step_24]
+
+
+## Крок 23/37: Візьміть предмет
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Всередині **antique trunk** ви бачите **k_0} from {c_1**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+cp $HOME/.tw2ta_game/c_1/k_0} from {c_1 ~/
+```
+
+*Оригінальна команда TextWorld:* `take k_0 from c_1`*
+
+
+--------------------
+
+name: step_24
+test: test "$(cat $HOME/.tw2ta_game/door_d_0} with {k_0.state)" = "closed"
+precmd: echo 'locked' > $HOME/.tw2ta_game/door_d_0} with {k_0.state
+postcmd: touch $HOME/.tw2ta_game/door_d_0} with {k_0.unlocked
+next: [step_25]
+
+
+## Крок 24/37: Відімкніть двері
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'closed' > $HOME/.tw2ta_game/door_d_0} with {k_0.state
+```
+
+*Оригінальна команда TextWorld:* `unlock d_0 with k_0`*
+
+
+--------------------
+
+name: step_25
+test: test "$(cat $HOME/.tw2ta_game/door_d_0.state)" = "open"
+precmd: echo 'closed' > $HOME/.tw2ta_game/door_d_0.state
+postcmd: echo 'door d_0 open' >> $HOME/.tw2ta_game/doors.log
+next: [step_26]
+
+
+## Крок 25/37: Відчиніть двері
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+**wooden door** зачинені, але відімкнені. Відчиніть їх.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'open' > $HOME/.tw2ta_game/door_d_0.state
+```
+
+*Оригінальна команда TextWorld:* `open d_0`*
+
+
+--------------------
+
+name: step_26
+test: test "$(cat $HOME/.tw2ta_game/current_room)" = "r_0"
+precmd: mkdir -p $HOME/.tw2ta_game/rooms
+postcmd: echo 'Moved to r_0 at $(date)' >> $HOME/.tw2ta_game/movement.log
+next: [step_27]
+
+
+## Крок 26/37: Йдіть на схід
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Перейдіть до кімнати **bedroom**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'r_0' > $HOME/.tw2ta_game/current_room
+```
+
+*Оригінальна команда TextWorld:* `go east`*
+
+
+--------------------
+
+name: step_27
+test: test "$(cat $HOME/.tw2ta_game/current_room)" = "r_1"
+precmd: mkdir -p $HOME/.tw2ta_game/rooms
+postcmd: echo 'Moved to r_1 at $(date)' >> $HOME/.tw2ta_game/movement.log
+next: [step_28]
+
+
+## Крок 27/37: Йдіть на південь
+
+Ви знаходитесь у кімнаті **kitchen**.
+
+Перейдіть до кімнати **kitchen**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'r_1' > $HOME/.tw2ta_game/current_room
+```
+
+*Оригінальна команда TextWorld:* `go south`*
+
+
+--------------------
+
+name: step_28
+test: "true"
+next: [step_29]
+
+
+## Крок 28/37: Візьміть предмет
+
+Ви знаходитесь у кімнаті **living room**.
+
+
+Виконайте потрібну дію.
+
+Виконайте дію: take {f_2} from {s_5}
+
+*Оригінальна команда TextWorld:* `take f_2 from s_5`*
+
+
+--------------------
+
+name: step_29
+test: test ! -f $HOME/.tw2ta_game/c_1/.closed
+precmd: mkdir -p $HOME/.tw2ta_game/c_1 && touch $HOME/.tw2ta_game/c_1/.closed
+postcmd: touch $HOME/.tw2ta_game/c_1/.open
+next: [step_30]
+
+
+## Крок 29/37: Відчиніть контейнер
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Перед вами **antique trunk** — він зачинений.
+Всередині щось є...
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+rm $HOME/.tw2ta_game/c_1/.closed
+```
+
+*Оригінальна команда TextWorld:* `open c_1`*
+
+
+--------------------
+
+name: step_30
+test: test -f ~/k_0} from {c_1
+precmd: mkdir -p $HOME/.tw2ta_game/c_1 && touch $HOME/.tw2ta_game/c_1/k_0} from {c_1
+postcmd: echo 'k_0} from {c_1 taken' >> $HOME/.tw2ta_game/inventory.log
+next: [step_31]
+
+
+## Крок 30/37: Візьміть предмет
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Всередині **antique trunk** ви бачите **k_0} from {c_1**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+cp $HOME/.tw2ta_game/c_1/k_0} from {c_1 ~/
+```
+
+*Оригінальна команда TextWorld:* `take k_0 from c_1`*
+
+
+--------------------
+
+name: step_31
+test: test "$(cat $HOME/.tw2ta_game/door_d_0} with {k_0.state)" = "closed"
+precmd: echo 'locked' > $HOME/.tw2ta_game/door_d_0} with {k_0.state
+postcmd: touch $HOME/.tw2ta_game/door_d_0} with {k_0.unlocked
+next: [step_32]
+
+
+## Крок 31/37: Відімкніть двері
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'closed' > $HOME/.tw2ta_game/door_d_0} with {k_0.state
+```
+
+*Оригінальна команда TextWorld:* `unlock d_0 with k_0`*
+
+
+--------------------
+
+name: step_32
+test: test "$(cat $HOME/.tw2ta_game/door_d_0.state)" = "open"
+precmd: echo 'closed' > $HOME/.tw2ta_game/door_d_0.state
+postcmd: echo 'door d_0 open' >> $HOME/.tw2ta_game/doors.log
+next: [step_33]
+
+
+## Крок 32/37: Відчиніть двері
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+**wooden door** зачинені, але відімкнені. Відчиніть їх.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'open' > $HOME/.tw2ta_game/door_d_0.state
+```
+
+*Оригінальна команда TextWorld:* `open d_0`*
+
+
+--------------------
+
+name: step_33
+test: test "$(cat $HOME/.tw2ta_game/current_room)" = "r_0"
+precmd: mkdir -p $HOME/.tw2ta_game/rooms
+postcmd: echo 'Moved to r_0 at $(date)' >> $HOME/.tw2ta_game/movement.log
+next: [step_34]
+
+
+## Крок 33/37: Йдіть на схід
+
+Ви знаходитесь у кімнаті **bedroom**.
+
+Перейдіть до кімнати **bedroom**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'r_0' > $HOME/.tw2ta_game/current_room
+```
+
+*Оригінальна команда TextWorld:* `go east`*
+
+
+--------------------
+
+name: step_34
+test: test "$(cat $HOME/.tw2ta_game/current_room)" = "r_1"
+precmd: mkdir -p $HOME/.tw2ta_game/rooms
+postcmd: echo 'Moved to r_1 at $(date)' >> $HOME/.tw2ta_game/movement.log
+next: [step_35]
+
+
+## Крок 34/37: Йдіть на південь
+
+Ви знаходитесь у кімнаті **kitchen**.
+
+Перейдіть до кімнати **kitchen**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'r_1' > $HOME/.tw2ta_game/current_room
+```
+
+*Оригінальна команда TextWorld:* `go south`*
+
+
+--------------------
+
+name: step_35
+test: "true"
+next: [step_36]
+
+
+## Крок 35/37: Візьміть предмет
+
+Ви знаходитесь у кімнаті **living room**.
+
+
+Виконайте потрібну дію.
+
+Виконайте дію: take {f_2} from {s_5}
+
+*Оригінальна команда TextWorld:* `take f_2 from s_5`*
+
+
+--------------------
+
+name: step_36
+test: test "$(cat $HOME/.tw2ta_game/current_room)" = "r_1"
+precmd: mkdir -p $HOME/.tw2ta_game/rooms
+postcmd: echo 'Moved to r_1 at $(date)' >> $HOME/.tw2ta_game/movement.log
+next: [step_37]
+
+
+## Крок 36/37: Йдіть на північ
+
+Ви знаходитесь у кімнаті **living room**.
+
+Перейдіть до кімнати **kitchen**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+echo 'r_1' > $HOME/.tw2ta_game/current_room
+```
+
+*Оригінальна команда TextWorld:* `go north`*
+
+
+--------------------
+
+name: step_37
+test: test -f $HOME/.tw2ta_game/s_2/f_2} on {s_2
+precmd: mkdir -p $HOME/.tw2ta_game/s_2
+postcmd: rm ~/f_2} on {s_2
+next: [final]
+
+
+## Крок 37/37: Покладіть на поверхню
+
+Ви знаходитесь у кімнаті **kitchen**.
+
+У вас є **f_2} on {s_2**. Покладіть його на **stove**.
+
+Виконайте потрібну дію.
+
+**Виконайте команду:**
+
+```bash
+cp ~/f_2} on {s_2 $HOME/.tw2ta_game/s_2/
+```
+
+*Оригінальна команда TextWorld:* `put f_2 on s_2`*
+
+
+--------------------
+
+name: final
+test: "true"
+precmd: 'echo ''Квест завершено! Загальна винагорода: 8 балів'''
+
+
+# 🎉 Вітаємо! Квест пройдено!
+
+Ви успішно виконали всі кроки челенджу!
+
+**Статистика:**
+- Квестів пройдено: 9
+- Винагорода: 8 балів
+
+Тепер ви можете завершити сесію командою "exit".
