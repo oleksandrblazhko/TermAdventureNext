@@ -47,45 +47,46 @@ type Supporter struct {
 
 // Item - предмет у грі
 type Item struct {
-	ID          string
-	Name        string
-	Type        string // k (ключ), f (їжа), o (інше)
-	Location    string // ID кімнати/контейнера/поверхні
+	ID       string
+	Name     string
+	Type     string // k (ключ), f (їжа), o (інше)
+	Location string // ID кімнати/контейнера/поверхні
 	InInventory bool
-	Edible      bool
+	Edible   bool
 }
 
 // GameState - повний стан гри
 type GameState struct {
-	Rooms       map[string]*Room
-	Doors       map[string]*Door
-	Containers  map[string]*Container
-	Supporters  map[string]*Supporter
-	Items       map[string]*Item
-	PlayerRoom  string // поточна кімната гравця
-	Quests      []QuestActions // квести з діями
-	Objective   string
-	Walkthrough []string
-	NameMap     map[string]string // Мапінг ID → читабельна назва
+	Rooms      map[string]*Room
+	Doors      map[string]*Door
+	Containers map[string]*Container
+	Supporters map[string]*Supporter
+	Items      map[string]*Item
+	
+	PlayerRoom string // поточна кімната гравця
+	Quests     []QuestActions // квести з діями
+	
+	// Мапінг ID → читабельна назва
+	NameMap map[string]string
 }
 
 // QuestActions - дії квесту з залежностями
 type QuestActions struct {
-	Desc           string
-	Reward         int
-	Actions        []ActionStep
+	Desc    string
+	Reward  int
+	Actions []ActionStep
 	FailConditions []FailCondition
 }
 
 // ActionStep - окремий крок дії
 type ActionStep struct {
-	Index          int
-	ActionName     string
-	Command        string
-	Preconditions  []Predicate
+	Index         int
+	ActionName    string
+	Command       string
+	Preconditions []Predicate
 	Postconditions []Predicate
-	SourceRoom     string // кімната де виконується дія
-	TargetRoom     string // цільова кімната (для руху)
+	SourceRoom    string // кімната де виконується дія
+	TargetRoom    string // цільова кімната (для руху)
 }
 
 // FailCondition - умова поразки
@@ -125,12 +126,8 @@ func BuildGameState(tw *TextWorldJSON) (*GameState, error) {
 	// 7. Знаходимо початкову кімнату гравця
 	gs.findPlayerStart(tw)
 
-	// 8. Зберігаємо мету та проходження
-	gs.Objective = tw.Objective
-	gs.Walkthrough = tw.Metadata.Walkthrough
-
-	// 9. Парсимо квести та дії
-	if err := gs.parseQuests(tw); err != nil {
+	// 8. Парсимо квести та дії
+	if err := gs.parseQuestes(tw); err != nil {
 		return nil, err
 	}
 
@@ -150,8 +147,10 @@ func (gs *GameState) buildNameMap(tw *TextWorldJSON) {
 
 // buildRooms - створює кімнати з предикатів
 func (gs *GameState) buildRooms(tw *TextWorldJSON) {
+	// Знаходимо всі унікальні кімнати
 	roomIDs := make(map[string]bool)
 	roomTypes := make(map[string]string)
+	
 	for _, pair := range tw.Infos {
 		if pair.Info.Type == "r" {
 			roomIDs[pair.ID] = true
@@ -160,8 +159,14 @@ func (gs *GameState) buildRooms(tw *TextWorldJSON) {
 			}
 		}
 	}
+
 	for roomID := range roomIDs {
-		gs.Rooms[roomID] = &Room{ID: roomID, Name: gs.NameMap[roomID], Type: roomTypes[roomID]}
+		room := &Room{
+			ID:   roomID,
+			Name: gs.NameMap[roomID],
+			Type: roomTypes[roomID],
+		}
+		gs.Rooms[roomID] = room
 	}
 }
 
@@ -169,31 +174,61 @@ func (gs *GameState) buildRooms(tw *TextWorldJSON) {
 func (gs *GameState) buildDoors(tw *TextWorldJSON) {
 	for _, pred := range tw.World {
 		if pred.Name == "link" && len(pred.Arguments) == 3 {
-			roomA, doorID, roomB := pred.Arguments[0].Name, pred.Arguments[1].Name, pred.Arguments[2].Name
-			if _, exists := gs.Doors[doorID]; !exists {
-				door := &Door{ID: doorID, Name: gs.NameMap[doorID], RoomA: roomA, RoomB: roomB}
-				gs.Doors[doorID] = door
-				if room, ok := gs.Rooms[roomA]; ok {
-					room.Doors = append(room.Doors, doorID)
-				}
-				if room, ok := gs.Rooms[roomB]; ok {
-					room.Doors = append(room.Doors, doorID)
-				}
+			roomA := pred.Arguments[0].Name
+			doorID := pred.Arguments[1].Name
+			roomB := pred.Arguments[2].Name
+
+			// Якщо двері вже існують, пропускаємо (зворотній link)
+			if _, exists := gs.Doors[doorID]; exists {
+				continue
+			}
+
+			door := &Door{
+				ID:    doorID,
+				Name:  gs.NameMap[doorID],
+				RoomA: roomA,
+				RoomB: roomB,
+			}
+			gs.Doors[doorID] = door
+
+			// Додаємо двері до кімнат
+			if roomA, ok := gs.Rooms[roomA]; ok {
+				roomA.Doors = append(roomA.Doors, doorID)
+			}
+			if roomB, ok := gs.Rooms[roomB]; ok {
+				roomB.Doors = append(roomB.Doors, doorID)
 			}
 		}
 	}
+
+	// Стан замків
 	for _, pred := range tw.World {
-		if (pred.Name == "locked" || pred.Name == "closed") && len(pred.Arguments) > 0 {
-			if door, ok := gs.Doors[pred.Arguments[0].Name]; ok {
-				if pred.Name == "locked" {
-					door.Locked = true
-				} else {
-					door.Closed = true
-				}
+		if pred.Name == "locked" && len(pred.Arguments) > 0 {
+			doorID := pred.Arguments[0].Name
+			if door, ok := gs.Doors[doorID]; ok {
+				door.Locked = true
 			}
-		} else if pred.Name == "match" && len(pred.Arguments) == 2 {
-			if door, ok := gs.Doors[pred.Arguments[1].Name]; ok {
-				door.KeyMatch = pred.Arguments[0].Name
+		}
+	}
+
+	// Стан дверей (відчинені/зачинені)
+	for _, pred := range tw.World {
+		if pred.Name == "closed" && len(pred.Arguments) > 0 {
+			argName := pred.Arguments[0].Name
+			// Перевіряємо чи це двері (тип d)
+			if _, isDoor := gs.Doors[argName]; isDoor {
+				gs.Doors[argName].Closed = true
+			}
+		}
+	}
+
+	// Відповідності ключів
+	for _, pred := range tw.World {
+		if pred.Name == "match" && len(pred.Arguments) == 2 {
+			keyID := pred.Arguments[0].Name
+			doorID := pred.Arguments[1].Name
+			if door, ok := gs.Doors[doorID]; ok {
+				door.KeyMatch = keyID
 			}
 		}
 	}
@@ -201,111 +236,208 @@ func (gs *GameState) buildDoors(tw *TextWorldJSON) {
 
 // buildContainers - створює контейнери
 func (gs *GameState) buildContainers(tw *TextWorldJSON) {
-	for _, pair := range tw.Infos {
-		if pair.Info.Type == "c" {
-			gs.Containers[pair.ID] = &Container{ID: pair.ID, Name: gs.NameMap[pair.ID]}
+	for _, pred := range tw.World {
+		if pred.Name == "at" && len(pred.Arguments) == 2 {
+			objID := pred.Arguments[0].Name
+			roomID := pred.Arguments[1].Name
+
+			// Перевіряємо чи це контейнер (тип c)
+			for _, pair := range tw.Infos {
+				if pair.ID == objID && pair.Info.Type == "c" {
+					container := &Container{
+						ID:   objID,
+						Name: gs.NameMap[objID],
+						Room: roomID,
+					}
+					gs.Containers[objID] = container
+
+					if room, ok := gs.Rooms[roomID]; ok {
+						room.Containers = append(room.Containers, objID)
+					}
+					break
+				}
+			}
 		}
 	}
+
+	// Стан контейнерів
 	for _, pred := range tw.World {
-		if pred.Name == "at" && len(pred.Arguments) == 2 && gs.Containers[pred.Arguments[0].Name] != nil {
-			containerID, roomID := pred.Arguments[0].Name, pred.Arguments[1].Name
-			gs.Containers[containerID].Room = roomID
-			if room, ok := gs.Rooms[roomID]; ok {
-				room.Containers = append(room.Containers, containerID)
+		if pred.Name == "closed" && len(pred.Arguments) > 0 {
+			objID := pred.Arguments[0].Name
+			if container, ok := gs.Containers[objID]; ok {
+				container.Closed = true
 			}
-		} else if pred.Name == "closed" && len(pred.Arguments) > 0 && gs.Containers[pred.Arguments[0].Name] != nil {
-			gs.Containers[pred.Arguments[0].Name].Closed = true
-		} else if pred.Name == "in" && len(pred.Arguments) == 2 && gs.Containers[pred.Arguments[1].Name] != nil {
-			itemID, containerID := pred.Arguments[0].Name, pred.Arguments[1].Name
-			gs.Containers[containerID].Contents = append(gs.Containers[containerID].Contents, itemID)
+		}
+	}
+
+	// Вміст контейнерів
+	for _, pred := range tw.World {
+		if pred.Name == "in" && len(pred.Arguments) == 2 {
+			itemID := pred.Arguments[0].Name
+			containerID := pred.Arguments[1].Name
+			if container, ok := gs.Containers[containerID]; ok {
+				container.Contents = append(container.Contents, itemID)
+			}
 		}
 	}
 }
 
 // buildSupporters - створює поверхні
 func (gs *GameState) buildSupporters(tw *TextWorldJSON) {
-	// ... (implementation is similar to buildContainers)
+	for _, pred := range tw.World {
+		if pred.Name == "at" && len(pred.Arguments) == 2 {
+			objID := pred.Arguments[0].Name
+			roomID := pred.Arguments[1].Name
+
+			for _, pair := range tw.Infos {
+				if pair.ID == objID && pair.Info.Type == "s" {
+					supporter := &Supporter{
+						ID:   objID,
+						Name: gs.NameMap[objID],
+						Room: roomID,
+					}
+					gs.Supporters[objID] = supporter
+
+					if room, ok := gs.Rooms[roomID]; ok {
+						room.Supporters = append(room.Supporters, objID)
+					}
+					break
+				}
+			}
+		}
+	}
+
+	// Предмети на поверхнях
+	for _, pred := range tw.World {
+		if pred.Name == "on" && len(pred.Arguments) == 2 {
+			itemID := pred.Arguments[0].Name
+			supporterID := pred.Arguments[1].Name
+			if supporter, ok := gs.Supporters[supporterID]; ok {
+				supporter.Contents = append(supporter.Contents, itemID)
+			}
+		}
+	}
 }
 
 // buildItems - створює предмети
 func (gs *GameState) buildItems(tw *TextWorldJSON) {
-	// ... (implementation is similar to buildContainers)
+	for _, pair := range tw.Infos {
+		// Пропускаємо кімнати (вже оброблені)
+		if pair.Info.Type == "r" {
+			continue
+		}
+
+		// Обробляємо тільки предмети (k, f, o)
+		if pair.Info.Type == "k" || pair.Info.Type == "f" || pair.Info.Type == "o" {
+			item := &Item{
+				ID:   pair.ID,
+				Name: gs.NameMap[pair.ID],
+				Type: pair.Info.Type,
+			}
+
+			// Перевіряємо чи їстівний
+			for _, pred := range tw.World {
+				if pred.Name == "edible" && len(pred.Arguments) > 0 {
+					if pred.Arguments[0].Name == pair.ID {
+						item.Edible = true
+					}
+				}
+			}
+
+			gs.Items[pair.ID] = item
+		}
+	}
+
+	// Визначаємо локацію кожного предмета
+	for _, pred := range tw.World {
+		if pred.Name == "at" && len(pred.Arguments) == 2 {
+			itemID := pred.Arguments[0].Name
+			roomID := pred.Arguments[1].Name
+			if item, ok := gs.Items[itemID]; ok {
+				item.Location = roomID
+			}
+		} else if pred.Name == "in" && len(pred.Arguments) == 2 {
+			itemID := pred.Arguments[0].Name
+			containerID := pred.Arguments[1].Name
+			if item, ok := gs.Items[itemID]; ok {
+				item.Location = "in:" + containerID
+			}
+		} else if pred.Name == "on" && len(pred.Arguments) == 2 {
+			itemID := pred.Arguments[0].Name
+			supporterID := pred.Arguments[1].Name
+			if item, ok := gs.Items[itemID]; ok {
+				item.Location = "on:" + supporterID
+			}
+		}
+	}
 }
 
 // findPlayerStart - знаходить початкову кімнату гравця
 func (gs *GameState) findPlayerStart(tw *TextWorldJSON) {
 	for _, pred := range tw.World {
-		if pred.Name == "at" && len(pred.Arguments) > 0 && pred.Arguments[0].Name == "P" {
-			gs.PlayerRoom = pred.Arguments[1].Name
-			return
+		if pred.Name == "at" && len(pred.Arguments) == 2 {
+			if pred.Arguments[0].Name == "P" && pred.Arguments[0].Type == "P" {
+				gs.PlayerRoom = pred.Arguments[1].Name
+				return
+			}
 		}
 	}
 }
 
-// parseQuests - парсить квести та їх дії
-func (gs *GameState) parseQuests(tw *TextWorldJSON) error {
+// parseQuestes - парсить квести та їх дії
+func (gs *GameState) parseQuestes(tw *TextWorldJSON) error {
 	for _, quest := range tw.Quests {
-		qa := QuestActions{Desc: quest.Desc, Reward: quest.Reward}
+		qa := QuestActions{
+			Desc:   quest.Desc,
+			Reward: quest.Reward,
+		}
+
+		// Парсимо fail_conditions
 		for _, fail := range quest.FailEvents {
 			if fail.Condition != nil {
-				qa.FailConditions = append(qa.FailConditions, FailCondition{Condition: *fail.Condition})
+				qa.FailConditions = append(qa.FailConditions, FailCondition{
+					Condition: *fail.Condition,
+				})
 			}
 		}
+
+		// Парсимо win_events
 		for _, winEvent := range quest.WinEvents {
 			for i, action := range winEvent.Actions {
 				step := ActionStep{
-					Index: i, ActionName: action.Name, Command: action.CommandTemplate,
-					Preconditions: action.Preconditions, Postconditions: action.Postconditions,
+					Index:          i,
+					ActionName:     action.Name,
+					Command:        action.CommandTemplate,
+					Preconditions:  action.Preconditions,
+					Postconditions: action.Postconditions,
 				}
+
+				// Визначаємо кімнату дії з precondition at(P, room)
 				for _, pre := range action.Preconditions {
-					if pre.Name == "at" && len(pre.Arguments) > 1 && pre.Arguments[0].Name == "P" {
-						step.SourceRoom = pre.Arguments[1].Name
+					if pre.Name == "at" && len(pre.Arguments) == 2 {
+						if pre.Arguments[0].Name == "P" {
+							step.SourceRoom = pre.Arguments[1].Name
+						}
 					}
-					if strings.Contains(pre.Name, "_of") {
+					// Для руху - визначаємо цільову кімнату
+					if strings.HasPrefix(pre.Name, "east_of") || strings.HasPrefix(pre.Name, "west_of") ||
+						strings.HasPrefix(pre.Name, "north_of") || strings.HasPrefix(pre.Name, "south_of") {
 						step.TargetRoom = pre.Arguments[0].Name
 					}
 				}
+
 				qa.Actions = append(qa.Actions, step)
 			}
 		}
+
 		gs.Quests = append(gs.Quests, qa)
 	}
+
 	if len(gs.Quests) == 0 {
 		return fmt.Errorf("не знайдено дійсних квестів з win_events")
 	}
+
 	return nil
-}
-
-// GetWalkthroughActions - повертає відсортований список дій для проходження
-func (gs *GameState) GetWalkthroughActions() []ActionStep {
-	var orderedActions []ActionStep
-	actionMap := make(map[string]ActionStep)
-
-	// Створюємо мапу для швидкого пошуку дій
-	for _, quest := range gs.Quests {
-		for _, action := range quest.Actions {
-			// Нормалізуємо команду, видаляючи плейсхолдери
-			normalizedCmd := cleanCommand(action.Command)
-			actionMap[normalizedCmd] = action
-		}
-	}
-
-	// Шукаємо відповідну ActionStep для кожної команди з walkthrough
-	for _, cmd := range gs.Walkthrough {
-		if action, ok := actionMap[cmd]; ok {
-			orderedActions = append(orderedActions, action)
-		} else {
-			fmt.Printf("Попередження: не знайдено ActionStep для команди walkthrough: %s\n", cmd)
-		}
-	}
-	return orderedActions
-}
-
-func cleanCommand(command string) string {
-	// Прибираємо фігурні дужки для показу гравцю
-	command = strings.ReplaceAll(command, "{", "")
-	command = strings.ReplaceAll(command, "}", "")
-	return command
 }
 
 // GetEntityName - повертає читабельну назву сутності
@@ -322,20 +454,62 @@ func (gs *GameState) GetRoomDescription(roomID string) string {
 	if !ok {
 		return "Невідома кімната"
 	}
+
 	var desc strings.Builder
-	desc.WriteString(fmt.Sprintf("Ви у кімнаті **%s** (%s).\n\n", gs.GetEntityName(roomID), room.Name))
+	desc.WriteString(fmt.Sprintf("Ви у кімнаті **%s**", gs.GetEntityName(roomID)))
+	
+	if room.Name != "" {
+		desc.WriteString(fmt.Sprintf(" (%s)", room.Name))
+	}
+	desc.WriteString(".\n\n")
+
+	// Контейнери
 	if len(room.Containers) > 0 {
 		desc.WriteString("Тут є:\n")
 		for _, cID := range room.Containers {
-			c := gs.Containers[cID]
+			container := gs.Containers[cID]
 			state := "відчинений"
-			if c.Closed {
+			if container.Closed {
 				state = "зачинений"
 			}
 			desc.WriteString(fmt.Sprintf("- **%s** (%s)\n", gs.GetEntityName(cID), state))
 		}
 		desc.WriteString("\n")
 	}
-	// ... (решта опису)
+
+	// Поверхні
+	if len(room.Supporters) > 0 {
+		desc.WriteString("Поверхні:\n")
+		for _, sID := range room.Supporters {
+			supporter := gs.Supporters[sID]
+			if len(supporter.Contents) > 0 {
+				desc.WriteString(fmt.Sprintf("- **%s** (на ньому: %s)\n", 
+					gs.GetEntityName(sID), 
+					gs.GetEntityName(supporter.Contents[0])))
+			} else {
+				desc.WriteString(fmt.Sprintf("- **%s**\n", gs.GetEntityName(sID)))
+			}
+		}
+		desc.WriteString("\n")
+	}
+
+	// Двері
+	if len(room.Doors) > 0 {
+		desc.WriteString("Двері:\n")
+		for _, dID := range room.Doors {
+			door := gs.Doors[dID]
+			state := ""
+			if door.Locked {
+				state = " (замкнені)"
+			} else if door.Closed {
+				state = " (зачинені)"
+			}
+			desc.WriteString(fmt.Sprintf("- до %s через **%s**%s\n", 
+				gs.GetEntityName(door.RoomA), 
+				gs.GetEntityName(dID), 
+				state))
+		}
+	}
+
 	return desc.String()
 }
