@@ -166,211 +166,107 @@ var placeholderRegex = regexp.MustCompile(`\{([^}]+)\}`)
 // extractTemplateVars - витягує змінні для шаблону, використовуючи Regex
 func extractTemplateVars(gs *GameState, action ActionStep, mapping *BashMapping) map[string]string {
 	vars := make(map[string]string)
-	cmd := action.Command
-	matches := placeholderRegex.FindAllStringSubmatch(cmd, -1)
+	cmd := action.Command // e.g., "take {k_0} from {c_1}"
 	
-	for _, match := range matches {
-		if len(match) < 2 {
-			continue
-		}
-		placeholder := match[1]
-		entityType := string(placeholder[0])
-		
-		vars[entityType+"_id"] = placeholder
-		if name := gs.GetEntityName(placeholder); name != "" {
-			vars[entityType+"_name"] = name
-			vars[entityType] = toBashName(name)
-		}
-	}
-	
+	// Add global variables if available
 	if mapping != nil {
 		vars["game_dir"] = mapping.GameDir
 		vars["inventory_log"] = mapping.InventoryLog
-	}
-	return vars
-}
-
-// toBashName - конвертує читабельну назву у bash-безпечне ім'я
-func toBashName(name string) string {
-	name = strings.ToLower(name)
-	name = strings.ReplaceAll(name, " ", "_")
-	name = strings.ReplaceAll(name, "-", "_")
-	return name
-}
-
-// generateFallbackCommands - виправлені вбудовані правила
-func generateFallbackCommands(gs *GameState, action ActionStep) (test, precmd, postcmd, playerCmd string) {
-	actionName := action.ActionName
-	vars := extractTemplateVars(gs, action, nil)
-	item, container, door := vars["item"], vars["container"], vars["door"]
-
-	switch {
-	case actionName == "open/c":
-		test = fmt.Sprintf("test ! -f $HOME/.tw2ta_game/%s/.closed", container)
-		precmd = fmt.Sprintf("mkdir -p $HOME/.tw2ta_game/%s && touch $HOME/.tw2ta_game/%s/.closed", container, container)
-		playerCmd = fmt.Sprintf("rm $HOME/.tw2ta_game/%s/.closed", container)
-	case actionName == "take/c":
-		test = fmt.Sprintf("test -f ~/%s", item)
-		precmd = fmt.Sprintf("mkdir -p $HOME/.tw2ta_game/%s && touch $HOME/.tw2ta_game/%s/%s", container, container, item)
-		playerCmd = fmt.Sprintf("mv $HOME/.tw2ta_game/%s/%s ~/", container, item)
-	case actionName == "unlock/d":
-		test = fmt.Sprintf("test ! -f $HOME/.tw2ta_game/%s/.locked", door)
-		precmd = fmt.Sprintf("mkdir -p $HOME/.tw2ta_game/%s && touch $HOME/.tw2ta_game/%s/.locked", door, door)
-		playerCmd = fmt.Sprintf("rm $HOME/.tw2ta_game/%s/.locked", door)
-	default:
-		test, playerCmd = "true", "# Виконайте дію: "+action.Command
-	}
-	return
-}
-
-// generateFinalLevel - створює фінальний рівень
-func generateFinalLevel(gs *GameState) string {
-	totalReward := 0
-	for _, quest := range gs.Quests {
-		totalReward += quest.Reward
+		vars["doors_log"] = mapping.DoorsLog
+		vars["movement_log"] = mapping.MovementLog
+		vars["current_room"] = mapping.CurrentRoom
+		vars["win_condition"] = mapping.WinCondition
+		vars["rooms_dir"] = mapping.RoomsDir
 	}
 
-	text := fmt.Sprintf(`# 🎉 Вітаємо! Квест пройдено!
+	// Extract specific variables based on command type and placeholders
+	key := getActionKeyFromTemplate(action.ActionName, action.Command)
 
-Ви успішно виконали всі кроки челенджу!
-
-**Статистика:**
-- Квестів пройдено: %d
-- Винагорода: %d балів
-
-Тепер ви можете завершити сесію командою "exit".`, len(gs.Quests), totalReward)
-
-	level := LevelData{
-		Name:   "final",
-		Test:   "true",
-		PreCmd: fmt.Sprintf("echo 'Квест завершено! Загальна винагорода: %d балів'", totalReward),
-		Text:   text,
-	}
-
-	return renderLevel(level)
-}
-
-// renderLevel - рендерить рівень у формат .ta
-func renderLevel(level LevelData) string {
-	var buf bytes.Buffer
-
-	fmt.Fprintf(&buf, "name: %s\n", level.Name)
-	formatYamlField(&buf, "test", level.Test)
-	formatYamlField(&buf, "precmd", level.PreCmd)
-	formatYamlField(&buf, "postcmd", level.PostCmd)
-	formatYamlField(&buf, "postprintcmd", level.PostPrintCmd)
-
-	if level.TimeLimit > 0 {
-		fmt.Fprintf(&buf, "timelimit: %d\n", level.TimeLimit)
-	}
-	if len(level.NextLevels) > 0 {
-		fmt.Fprintf(&buf, "next: [%s]\n", strings.Join(level.NextLevels, ", "))
-	}
-	if level.BackgroundJobs {
-		fmt.Fprintf(&buf, "bgjobs: true\n")
-	}
-
-	buf.WriteString("\n") // Один перенос рядка перед текстом
-	buf.WriteString(level.Text)
-
-	return buf.String()
-}
-
-// formatYamlField - форматує поле YAML, обробляючи багаторядкові значення
-func formatYamlField(buf *bytes.Buffer, key, value string) {
-	if value == "" {
-		return
-	}
-	if strings.Contains(value, "\n") {
-		fmt.Fprintf(buf, "%s: |\n", key)
-		for _, line := range strings.Split(strings.TrimRight(value, "\n"), "\n") {
-			fmt.Fprintf(buf, "  %s\n", line)
+	// Generic function to extract ID from placeholder (e.g., "{c_1}" -> "c_1")
+	extractID := func(placeholder string) string {
+		matches := placeholderRegex.FindStringSubmatch(placeholder)
+		if len(matches) > 1 {
+			return matches[1]
 		}
-	} else {
-		fmt.Fprintf(buf, "%s: %s\n", key, yamlQuote(value))
+		return ""
 	}
-}
 
-// yamlQuote - безпечно квотує значення для YAML
-func yamlQuote(s string) string {
-	s = strings.TrimSpace(s)
-	if !needsQuoting(s) {
-		return s
-	}
-	data, err := yaml.Marshal(s)
-	if err != nil {
-		return `"` + strings.ReplaceAll(s, `"`, `\"`) + `"`
-	}
-	return strings.TrimSpace(string(data))
-}
+	switch key {
+	case "open <container>", "close <container>":
+		// Command example: "open {c_1}"
+		containerID := extractID(strings.TrimPrefix(cmd, "open "))
+		if containerID == "" { containerID = extractID(strings.TrimPrefix(cmd, "close ")) }
+		vars["container"] = toBashName(gs.GetEntityName(containerID))
+		vars["container_name"] = gs.GetEntityName(containerID)
+	
+	case "take <object> from <container>":
+		// Command example: "take {k_0} from {c_1}"
+		parts := strings.Split(cmd, " from ")
+		if len(parts) == 2 {
+			itemID := extractID(strings.TrimPrefix(parts[0], "take "))
+			containerID := extractID(parts[1])
+			vars["item"] = toBashName(gs.GetEntityName(itemID))
+			vars["item_name"] = gs.GetEntityName(itemID)
+			vars["container"] = toBashName(gs.GetEntityName(containerID))
+			vars["container_name"] = gs.GetEntityName(containerID)
+		}
 
-// needsQuoting — перевіряє чи значення потребує YAML-квотування
-func needsQuoting(s string) bool {
-	if s == "" {
-		return true // Пусті рядки теж треба квотувати
+	case "unlock <door> with <key>":
+		// Command example: "unlock {d_0} with {k_0}"
+		parts := strings.Split(cmd, " with ")
+		if len(parts) == 2 {
+			doorID := extractID(strings.TrimPrefix(parts[0], "unlock "))
+			keyID := extractID(parts[1])
+			vars["door"] = toBashName(gs.GetEntityName(doorID))
+			vars["door_name"] = gs.GetEntityName(doorID)
+			vars["key"] = toBashName(gs.GetEntityName(keyID))
+			vars["key_name"] = gs.GetEntityName(keyID)
+		}
+
+	case "open <door>", "close <door>":
+		// Command example: "open {d_0}"
+		doorID := extractID(strings.TrimPrefix(cmd, "open "))
+		if doorID == "" { doorID = extractID(strings.TrimPrefix(cmd, "close ")) }
+		vars["door"] = toBashName(gs.GetEntityName(doorID))
+		vars["door_name"] = gs.GetEntityName(doorID)
+	
+	case "go <direction>":
+		// Command example: "go east"
+		direction := strings.TrimPrefix(cmd, "go ")
+		vars["direction"] = direction
+		if action.TargetRoom != "" {
+			vars["room"] = toBashName(gs.GetEntityName(action.TargetRoom))
+			vars["room_name"] = gs.GetEntityName(action.TargetRoom)
+		} else if action.SourceRoom != "" {
+			// Fallback to source room if target not explicitly set
+			vars["room"] = toBashName(gs.GetEntityName(action.SourceRoom))
+			vars["room_name"] = gs.GetEntityName(action.SourceRoom)
+		}
+
+	case "put <object> on <supporter>":
+		// Command example: "put {f_2} on {s_2}"
+		parts := strings.Split(cmd, " on ")
+		if len(parts) == 2 {
+			itemID := extractID(strings.TrimPrefix(parts[0], "put "))
+			supporterID := extractID(parts[1])
+			vars["item"] = toBashName(gs.GetEntityName(itemID))
+			vars["item_name"] = gs.GetEntityName(itemID)
+			vars["supporter"] = toBashName(gs.GetEntityName(supporterID))
+			vars["supporter_name"] = gs.GetEntityName(supporterID)
+		}
+	
+	case "take <object>":
+		// Command example: "take {k_0}"
+		itemID := extractID(strings.TrimPrefix(cmd, "take "))
+		vars["item"] = toBashName(gs.GetEntityName(itemID))
+		vars["item_name"] = gs.GetEntityName(itemID)
 	}
-	// Спецсимволи YAML
-	specialChars := []string{":", "{", "}", "[", "]", ",", "&", "*", "#", "?", "|", "-", "<", ">", "=", "!", "%", "@", "`"}
-	if strings.ContainsAny(s, specialChars) {
-		return true
-	}
-	// Починається або закінчується пробілом
-	if s[0] == ' ' || s[len(s)-1] == ' ' {
-		return true
-	}
-	// Схоже на число/булеве
-	if s == "true" || s == "false" || s == "null" || s == "TRUE" || s == "FALSE" || s == "NULL" {
-		return true
+
+	// Always add room from action.SourceRoom if available, especially for descriptions.
+	if action.SourceRoom != "" && vars["room"] == "" { // Only if not already set by "go" action
+		vars["room"] = toBashName(gs.GetEntityName(action.SourceRoom))
+		vars["room_name"] = gs.GetEntityName(action.SourceRoom)
 	}
 	
-    // Check if it can be parsed as a number
-    if _, err := strconv.ParseFloat(s, 64); err == nil {
-        return true
-    }
-    if _, err := strconv.ParseInt(s, 10, 64); err == nil {
-        return true
-    }
-
-	return false
-}
-
-
-// generateLevelText, getActionTitle, getActionInstructions - без суттєвих змін
-// ...
-func generateLevelText(gs *GameState, action ActionStep, currentStep int, totalSteps int, playerCommand string) string {
-	var text strings.Builder
-
-	text.WriteString(fmt.Sprintf("## Крок %d/%d: %s\n\n", currentStep, totalSteps, getActionTitle(gs, action)))
-	text.WriteString(getActionInstructions(gs, action))
-
-	if playerCommand != "" && !strings.HasPrefix(playerCommand, "#") {
-		text.WriteString(fmt.Sprintf("\n**Виконайте команду:**\n\n```bash\n%s\n```\n", playerCommand))
-	}
-
-	text.WriteString(fmt.Sprintf("\n*Оригінальна команда TextWorld:* `%s`*\n", cleanCommand(action.Command)))
-
-	return text.String()
-}
-
-func getActionTitle(gs *GameState, action ActionStep) string {
-	key := getActionKeyFromTemplate(action.ActionName, action.Command)
-	switch key {
-	case "open <container>":
-		return "Відчиніть контейнер"
-	case "take <object> from <container>":
-		return "Візьміть предмет"
-	case "unlock <door> with <key>":
-		return "Відімкніть"
-	default:
-		return "Виконайте дію"
-	}
-}
-
-func getActionInstructions(gs *GameState, action ActionStep) string {
-	vars := extractTemplateVars(gs, action, nil)
-	return fmt.Sprintf("Ви знаходитесь у кімнаті **%s**.\n\nВиконайте потрібну дію.\n", vars["room_name"])
-}
-
-func cleanCommand(command string) string {
-	return strings.NewReplacer("{", "", "}", "").Replace(command)
+	return vars
 }
